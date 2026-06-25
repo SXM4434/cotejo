@@ -36,6 +36,29 @@ const slug = (s: string) => s.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")
 const encodeShare = (o: unknown) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const decodeShare = (s: string) => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/")))));
 
+// FIRST-RUN DEMO — a ready-to-record setup so Cotejo opens considered, not blank. Built-in faces only
+// (always render): a geometric-sans display cap-matched to a serif body, two candidates mid-audition,
+// a partial stack already decided. Seeded ONCE (flag-guarded); never clobbers your own sessions.
+const DEMO_ID = "demo";
+const DEMO_FLAG = "cotejo.demo-seeded.v1";
+const DEMO_WORK = {
+  roles: [
+    { id: "role-display", name: "Display", fontId: "unbounded", step: 5, kind: "display" },
+    { id: "role-heading", name: "Heading", fontId: "unbounded", step: 3, kind: "heading" },
+    { id: "role-body", name: "Body", fontId: "newsreader", step: 0, kind: "body" },
+    { id: "role-caption", name: "Caption", fontId: "mona", step: -1, kind: "caption" },
+  ],
+  scale: { base: 16, ratio: 1.333 },
+  text: "Hamburgefonstiv",
+  candidateIds: ["anybody", "hubot"],
+  winners: { "role-display": "unbounded", "role-body": "newsreader" },
+  userDirs: [],
+  focusRoleId: "role-display",
+  surfaceContent: {},
+  tunes: {},
+  measure: 66,
+};
+
 type Ctx = WS & {
   active: SessionMeta;
   newSession: () => void;
@@ -118,6 +141,21 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (!m) return;
     try { const blob = decodeShare(m[1]) as ExportBlob; if (blob?.work) importData(blob.name ? `${blob.name} (shared)` : "Shared", blob.work); } catch { /* bad link */ }
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // FIRST-RUN DEMO — seed the ready-to-record "Demo" session once, then make it active (so the app
+  // opens on a real, considered setup). A share link takes precedence; the flag stops it ever re-adding.
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash.includes("share=")) return;
+    try {
+      if (window.localStorage.getItem(DEMO_FLAG)) return;
+      window.localStorage.setItem(workKeyFor(DEMO_ID), JSON.stringify(DEMO_WORK));
+      window.localStorage.setItem(DEMO_FLAG, "1");
+      setWs((w) => (w.sessions.some((s) => s.id === DEMO_ID) ? w
+        : { activeId: DEMO_ID, sessions: [{ id: DEMO_ID, name: "Demo — start here" }, ...w.sessions] }));
+    } catch { /* quota */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
