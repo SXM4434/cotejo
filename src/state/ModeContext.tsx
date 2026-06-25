@@ -18,7 +18,8 @@ const ModeCtx = React.createContext<Ctx | null>(null);
 export function ModeProvider({ children }: { children: React.ReactNode }) {
   const init = new URLSearchParams(window.location.search).get("mode") as Mode | null;
   const valid = MODES.some((m) => m.id === init);
-  const [mode, setMode] = React.useState<Mode>(valid ? (init as Mode) : "compare");
+  // first paint lands on SET UP — you build the system before you compare (a ?mode= param still wins).
+  const [mode, setMode] = React.useState<Mode>(valid ? (init as Mode) : "setup");
   return <ModeCtx.Provider value={{ mode, setMode }}>{children}</ModeCtx.Provider>;
 }
 
