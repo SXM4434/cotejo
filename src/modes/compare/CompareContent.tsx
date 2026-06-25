@@ -158,7 +158,12 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
         ) : !autoTune ? (
           <span style={{ ...num, fontSize: 10.5 }}>raw size</span>
         ) : tune ? (
-          <span style={{ ...num, fontSize: 10.5 }}>cap-matched ×{tune.size.toFixed(3)}</span>
+          // hover reveals the image-test result: the caps measured off the RENDERED glyphs + the scale.
+          // Opt-in detail (judge letterforms, not numbers) — the ×N is the headline; the metrics hide here.
+          <span style={{ ...num, fontSize: 10.5, cursor: "help" }}
+            title={`Measured live from the rendered glyphs — your base caps ${baseM!.cap.toFixed(2)} vs this face ${candM!.cap.toFixed(2)} (height per em). Scaled ${tune.size >= 1 ? "+" : ""}${((tune.size - 1) * 100).toFixed(0)}% so the capitals match.`}>
+            cap-matched ×{tune.size.toFixed(3)}
+          </span>
         ) : (
           <span style={{ ...num, fontSize: 10.5 }}>measuring…</span>
         )}
@@ -317,7 +322,7 @@ function CapMatchNote({ anchor }: { anchor: "cap" | "cap-x" }) {
     : "resized so its x-height (the lowercase height) matches your base — the fair measure for reading text";
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 12, maxWidth: "66ch", margin: "0 0 20px", padding: "9px 10px 9px 14px", borderRadius: "var(--t-r-block)", background: "var(--t-surface-2)", fontSize: 12.5, lineHeight: 1.45, color: "var(--t-ink-2)" }}>
-      <span><strong style={{ fontWeight: 600, color: "var(--t-ink)" }}>{label}.</strong> Every candidate is {how} — you’re comparing letter shapes, not sizes.</span>
+      <span><strong style={{ fontWeight: 600, color: "var(--t-ink)" }}>{label}.</strong> Every candidate is {how}, measured live from the rendered glyphs — so you’re comparing letter shapes, not sizes.</span>
       <button className="t-iconbtn" onClick={dismiss} aria-label="Got it" style={{ flexShrink: 0 }}><Close size={14} /></button>
     </div>
   );
