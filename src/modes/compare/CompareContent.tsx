@@ -120,6 +120,7 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
   // (blindLabel changes), so toggling blind off→on re-masks.
   const [revealed, setRevealed] = React.useState(false);
   React.useEffect(() => { setRevealed(false); }, [blindLabel]);
+  const [capHover, setCapHover] = React.useState(false); // instant styled tooltip for the measured caps
   const tune = React.useMemo<DeriveResult | null>(
     () => (!isBase && baseM && candM ? deriveTune(DISPLAY_ROLE, baseM, candM) : null),
     [isBase, baseM, candM],
@@ -160,9 +161,18 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
         ) : tune ? (
           // hover reveals the image-test result: the caps measured off the RENDERED glyphs + the scale.
           // Opt-in detail (judge letterforms, not numbers) — the ×N is the headline; the metrics hide here.
-          <span style={{ ...num, fontSize: 10.5, cursor: "help", textDecoration: "underline dotted", textDecorationColor: "var(--t-ink-3)", textUnderlineOffset: 3 }}
-            title={`Measured live from the rendered glyphs — your base caps ${baseM!.cap.toFixed(2)} vs this face ${candM!.cap.toFixed(2)} (height per em). Scaled ${tune.size >= 1 ? "+" : ""}${((tune.size - 1) * 100).toFixed(0)}% so the capitals match.`}>
-            cap-matched ×{tune.size.toFixed(3)}
+          <span style={{ position: "relative", display: "inline-flex" }} onMouseEnter={() => setCapHover(true)} onMouseLeave={() => setCapHover(false)}>
+            <span style={{ ...num, fontSize: 10.5, cursor: "default", textDecoration: "underline dotted", textDecorationColor: "var(--t-ink-3)", textUnderlineOffset: 3 }}>cap-matched ×{tune.size.toFixed(3)}</span>
+            {capHover && (
+              <span role="tooltip" style={{
+                position: "absolute", top: "calc(100% + 7px)", left: 0, zIndex: 80, width: 244,
+                background: "rgba(255,255,255,0.98)", color: "var(--t-ink-2)", padding: "9px 12px", borderRadius: "var(--t-r-block)",
+                fontFamily: "var(--t-ui-sans, system-ui, sans-serif)", fontSize: 11.5, lineHeight: 1.45, fontVariantNumeric: "normal", textTransform: "none", letterSpacing: 0, whiteSpace: "normal",
+                boxShadow: "inset 0 1px 0 0 var(--t-white-edge), inset 0 0 0 1px rgba(var(--t-scrim),0.05), 0 10px 26px -14px rgba(var(--t-scrim),0.22)",
+              }}>
+                Measured live from the rendered glyphs — your base caps <strong style={{ fontWeight: 600, color: "var(--t-ink)" }}>{baseM!.cap.toFixed(2)}</strong> vs this face <strong style={{ fontWeight: 600, color: "var(--t-ink)" }}>{candM!.cap.toFixed(2)}</strong> (height per em). Scaled {tune.size >= 1 ? "+" : ""}{((tune.size - 1) * 100).toFixed(0)}% so the capitals match.
+              </span>
+            )}
           </span>
         ) : (
           <span style={{ ...num, fontSize: 10.5 }}>measuring…</span>
