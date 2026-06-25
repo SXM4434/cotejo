@@ -9,6 +9,7 @@
 // unchanged while the frame underneath is now roles-based.
 import React from "react";
 import { gfId, gfById, gfFallback, loadGoogleCss, type GFCategory, type GFLicense } from "../data/googleFonts";
+import { classifyCategory } from "../lib/fontClassify";
 import { gfLicenseFor } from "../data/googleFontsAll";
 import { GOOGLE_FONTS_ALL } from "../data/googleFontsAll";
 
@@ -562,8 +563,12 @@ export function SessionProvider({ children, sessionId = "v1" }: { children: Reac
     } catch {
       return { ok: false, reason: "That file isn’t a font we can read (woff2/otf/ttf)." };
     }
-    FACES = [...FACES, userFace(id, family, label, cat)];
-    const stored = loadStoredFonts(); stored.push({ id, family, label, b64: abToB64(buf), cat });
+    // AUTO-CLASSIFY the upload from how it RENDERS (the trained font classifier) instead of defaulting to
+    // "sans" — a confident prediction sets the real category, which feeds metaFor → better pairing recs.
+    const detected = classifyCategory(family);
+    const finalCat = detected ? detected.category : cat;
+    FACES = [...FACES, userFace(id, family, label, finalCat)];
+    const stored = loadStoredFonts(); stored.push({ id, family, label, b64: abToB64(buf), cat: finalCat });
     try { window.localStorage.setItem(FONTS_KEY, JSON.stringify(stored)); } catch { /* quota — stays this session only */ }
     setFontsVersion((v) => v + 1);
     return { ok: true, id };

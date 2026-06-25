@@ -9,7 +9,14 @@
 // a model that doesn't exist ([[feedback_actual_ml_not_fake]]). The feature vector here MUST stay in
 // lockstep with the trainer's featureVector(); they share the same order + definitions.
 import type { RawMetrics, RoleConfig, Tune } from "./types";
-import { CORRECTION_MODEL as M, type LinModel } from "./correctionModel";
+import { CORRECTION_MODEL, type LinModel, type CorrectionModelFile } from "./correctionModel";
+
+// the LIVE model: starts as the baked one, then upgrades to the latest model retrained NIGHTLY from real
+// usage (api/cron/retrain writes it → api/model serves it). Fire-and-forget on load; falls back to baked.
+let M: CorrectionModelFile = CORRECTION_MODEL;
+if (typeof window !== "undefined" && typeof fetch !== "undefined") {
+  fetch("/api/model").then((r) => (r.ok ? r.json() : null)).then((m) => { if (m && m.trained) M = m; }).catch(() => {});
+}
 
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
 const round4 = (n: number) => Math.round(n * 10000) / 10000;
