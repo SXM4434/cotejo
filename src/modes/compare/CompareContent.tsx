@@ -230,7 +230,7 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
 
 function LetterformsGrid({ lmMode, sampleId, blind, otFeatures }: { lmMode: "font" | "text"; sampleId: string; blind: boolean; otFeatures: OtFeature[] }) {
   const { base, baseM, text, setText, roleName, autoTune, candidateIds, addCandidate, removeCandidate, replaceCandidate, setBaseId, focusRoleId, winners } = useCompare();
-  const { roles, directions, pickWinner } = useSession();
+  const { roles, directions, pickWinner, addGoogleFont } = useSession();
   // the proof controls (pick/edit · sample · blind · OpenType) live in the DOCK (chrome) now — the
   // canvas stays PURE. DARK GROUND is applied by the parent (it wraps surfaces too — it's universal).
   const sample = SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0];
@@ -282,11 +282,13 @@ function LetterformsGrid({ lmMode, sampleId, blind, otFeatures }: { lmMode: "fon
           <FontPicker addMode placeholder="Search fonts…" disabledIds={[base.id, ...candidateIds]} onPick={addCandidate} tagFor={tagFor} tagForAny={tagForAny} roleLabel={focusRole.name} recommended={recProp(recs)} />
           {/* one-click seed the comparison with the engine's top picks (100-run: Compare lands empty) */}
           {(() => {
-            const shortlist = topRecs(focusRole, roles, winners, 8).map((r) => r.fontId).filter((id) => id !== base.id && !candidateIds.includes(id));
-            return shortlist.length > 0 ? (
-              <button className="t-bare" onClick={() => { tactileSelect(); shortlist.forEach((id) => addCandidate(id)); }}
+            // keep the FULL Rec so we can LOAD the Google recommendations before adding them — otherwise a
+            // not-yet-loaded gf- id resolves to FACES[0] (Unbounded) and you get the same face N times.
+            const shortRecs = topRecs(focusRole, roles, winners, 8).filter((r) => r.fontId !== base.id && !candidateIds.includes(r.fontId));
+            return shortRecs.length > 0 ? (
+              <button className="t-bare" onClick={() => { tactileSelect(); shortRecs.forEach((r) => { if (r.gf && !FACES.some((f) => f.id === r.fontId)) addGoogleFont(r.gf.family, r.gf.category); addCandidate(r.fontId); }); }}
                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 500, color: "var(--t-match)", padding: "0 4px", display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <RingDot size={12} /> add {shortlist.length} recommended
+                <RingDot size={12} /> add {shortRecs.length} recommended
               </button>
             ) : null;
           })()}

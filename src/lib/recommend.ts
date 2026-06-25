@@ -74,10 +74,13 @@ type RecCand = { id: string; label: string; meta: FontMeta; gf?: { family: strin
 // is what lets the recommender suggest a real Google partner, not just "a font from what's there".
 function candidatePool(): RecCand[] {
   const loaded = new Set(FACES.map((f) => f.id));
+  // also dedupe by NAME — a few built-ins (Unbounded, Newsreader…) are ALSO on Google Fonts; without
+  // this they'd appear twice (the built-in + a `gf-` twin), e.g. "Unbounded" recommended on top of itself.
+  const loadedNames = new Set(FACES.map((f) => f.label.toLowerCase()));
   const pool: RecCand[] = FACES.map((f) => ({ id: f.id, label: f.label, meta: metaFor(f) }));
   for (const family in GOOGLE_FONT_META) {
     const id = gfId(family);
-    if (loaded.has(id)) continue; // already a live FACE → scored above with its measured meta
+    if (loaded.has(id) || loadedNames.has(family.toLowerCase())) continue; // already a live FACE → scored above
     const meta = GOOGLE_FONT_META[family];
     pool.push({ id, label: family, meta, gf: { family, category: GF_CAT[meta.category] } });
   }
