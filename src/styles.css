@@ -1,0 +1,309 @@
+/* ============================================================================
+   Type Tool — design system  ·  LIGHT  ·  "quiet instrument"
+   Rams filter: less, but better. Spacing separates — not lines. Chrome
+   recedes so the specimens (the thing being judged) dominate. Its OWN light
+   ground (NOT the W1 paper). Locale-style generous rounding via @lisse.
+   ========================================================================= */
+:root {
+  /* — Ground (a calm, faintly-cool NEUTRAL paper — deliberately OFF the warm-cream that reads
+       as an AI default; pairs with the green accent for a "precision instrument" read). — */
+  --t-bg:       #eef0ed;
+  --t-bg-lift:  #f9faf8;
+
+  /* — Surfaces (soft frosted light glass; used sparingly) — */
+  --t-surface:    rgba(255, 255, 255, 0.55);
+  --t-surface-2:  rgba(255, 255, 255, 0.82);
+  --t-white-edge: rgba(255, 255, 255, 0.75);
+
+  /* — Ink (warm near-black) — */
+  --t-ink:    #1b1815;
+  --t-ink-2:  #6c655a;
+  --t-ink-3:  #a39c8e;
+
+  /* — Accent (the one committed brand color — a bold, saturated COBALT; sharp, not a default
+       pale-indigo gradient). Used for picked/matched/active throughout. — */
+  --t-match:  #1f4ee6;   /* the ONE accent — interaction state (picked/active) + primary action + the one recommendation signal. Never decoration, never a label tint (design-language-v2 §3). */
+  --t-anchor: #d6453b;   /* registration anchor — the one red, used only for the Tune anchor */
+
+  /* — Scrim ink — modal backdrops + popover drop-shadows resolve to ONE ink (the --t-ink RGB,
+       27 24 21) so overlays match the rest of the system instead of a slightly-off 20 18 15. — */
+  --t-scrim: 27, 24, 21;
+
+  /* — Radii (Locale rounding via @lisse) — */
+  --t-r-panel: 22px;
+  --t-r-pill:  16px;
+  --t-r-menu:  16px;  /* popovers / glass containers / cards */
+  --t-r-block: 10px;  /* inputs, option rows, inner blocks */
+  --t-r-chip:   6px;  /* chips, small marks */
+  --t-smooth:  0.6;
+
+  /* — Rhythm (8pt; spacing is the separation system) — */
+  --t-unit: 8px;
+
+  /* — FLUID CHROME tokens — clamp() so the UI scales calmly across viewports (the
+       portfolio's "clamp for fluid everything"). These are CHROME ONLY — the
+       specimens (the type being judged) stay TRUE px and are never scaled here. — */
+  --t-pad:     clamp(8px, 1.8vw, 22px);    /* side gutter (8pt floor) */
+  --t-title:   clamp(25px, 4.6vw, 34px);   /* mode titles */
+  --t-helper:  clamp(14px, 2.2vw, 16px);   /* helper paragraphs */
+  --t-gap-xl:  clamp(36px, 7vw, 72px);     /* big section gaps */
+  --t-gap-lg:  clamp(28px, 5.2vw, 52px);
+  --t-gap-md:  clamp(22px, 4.4vw, 44px);
+  --t-gap-sm:  clamp(18px, 3.4vw, 28px);
+
+  /* — Control heights — ONE shared height per tier so adjacent controls (pills, selects, the
+       sessions switcher) align on a single horizontal spine. No more orphan heights. — */
+  --t-h-pill:    40px;   /* the standard pill/select/button height */
+  --t-h-pill-sm: 34px;   /* compact variant */
+  --t-h-pill-lg: 46px;   /* large primary actions */
+  --t-h-track:   34px;   /* segmented / recessed-well groups (read as one unit) */
+
+  /* — Lift — ONE soft shadow recipe for every raised control (pill/card/toggle). Reference these
+       instead of re-typing the stack (was duplicated in Btn, IconToggle, .t-pill, .t-dir). — */
+  --t-lift:      0 1px 1px rgba(27, 24, 21, 0.06), 0 3px 8px -5px rgba(27, 24, 21, 0.18);
+  /* the raised-pill MATERIAL edge + hover fill — TOKENIZED so a dark/over-image context can re-scope
+     them (interface-style-details: a hardcoded white edge / #fff hover doesn't pick up its background,
+     so on a dark ground it reads as a "weird white thing"). DARK_GROUND overrides both. */
+  --t-pill-edge:  rgba(255, 255, 255, 0.95);
+  --t-pill-hover: #fff;
+  --t-lift-pill: inset 0 1px 0 0 var(--t-pill-edge), var(--t-lift);
+
+  /* — Z-scale — one stacking contract (replaces 9 ad-hoc tiers). — */
+  --t-z-bar: 30; --t-z-dock: 40; --t-z-pop: 60; --t-z-tooltip: 80; --t-z-modal: 90; --t-z-toast: 120; --t-z-modal-pop: 200;
+
+  /* — Motion (snappy, interruptible, bounce 0) — */
+  --t-ease: cubic-bezier(0.2, 0, 0, 1);
+  --t-dur:  170ms;
+  --t-press: 95ms;   /* press-down: fast = snappy; hovers stay on --t-dur = soft */
+  --t-press-scale: 0.96;  /* the one press-down scale (Btn/PillSelect/Segmented/iconbtn all share) */
+
+  /* — Type — the chrome wears a clean, quiet SANS (Mona Sans). It gets out of the way so the
+       specimens (the thing being judged) are the only thing with personality. Monospace is reserved
+       for actual DATA — the px/rem/×ratio readouts — where fixed width earns its place; using it for
+       every label read as a terminal costume, not a quiet instrument. The audition specimens are
+       NEVER --t-sans (they render the user's resolved fonts), so this is chrome-only. — */
+  --t-sans: 'Mona Sans Variable', system-ui, sans-serif;
+  --t-ui-sans: 'Mona Sans Variable', system-ui, sans-serif;
+  --t-mono: 'Spline Sans Mono Variable', ui-monospace, 'SF Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--t-bg);
+  color: var(--t-ink);
+  font-family: var(--t-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* optimizeLegibility = real kerning/ligatures (this is a type tool). text-size-adjust:100%
+     stops iOS from inflating the SPECIMENS in landscape, which would corrupt the cap-match read. */
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* warm selection, not the browser default blue (web-interface-guidelines: style ::selection) */
+::selection { background: color-mix(in oklab, var(--t-match) 26%, transparent); }
+
+/* in-surface click-to-edit field (play): real keyboard focus + a quiet hover seat */
+.t-playfield { border-radius: 6px; transition: background var(--t-dur) var(--t-ease); }
+@media (hover: hover) { .t-playfield:hover { background: color-mix(in oklab, var(--t-ink) 5%, transparent); } }
+.t-playfield:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px color-mix(in oklab, var(--t-ink) 32%, transparent); }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* hide scrollbar but keep scrollability (mobile mode-toggle strip) */
+.t-noscroll { scrollbar-width: none; -ms-overflow-style: none; }
+.t-noscroll::-webkit-scrollbar { display: none; }
+
+/* Soft frosted light glass. Inset white edge is clip-safe under @lisse. No
+   border — separation comes from spacing + a whisper of frost, never a line. */
+.t-glass {
+  background: var(--t-surface);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  box-shadow: inset 0 1px 0 0 var(--t-white-edge);
+}
+
+/* Liquid glass — real refraction via the SVG displacement filter (CHROMIUM).
+   The url() value is invalid in Safari/FF → the cascade drops this declaration
+   and .t-glass's plain blur above applies (incl. its -webkit- prefix). Element
+   must carry BOTH classes: `t-glass t-liquid`. */
+.t-liquid {
+  backdrop-filter: url(#cotejo-glass) blur(6px) saturate(1.7) brightness(1.04);
+  box-shadow:
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.95),      /* bright top specular */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),           /* rim light */
+    inset 0 -12px 22px -12px rgba(255, 255, 255, 0.38),  /* bottom inner glow */
+    inset 0 10px 22px -14px rgba(27, 24, 21, 0.05);      /* top inner depth */
+}
+
+button { font-family: inherit; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: rgba(0,0,0,0); }
+input  { font-family: inherit; -webkit-tap-highlight-color: rgba(0,0,0,0); }
+/* On touch devices, focusing a sub-16px input makes iOS zoom the viewport. Present 16px
+   to the layout engine there (keeps the quiet 12px mono optics on desktop). */
+@media (pointer: coarse) { input, [contenteditable] { font-size: 16px; } }
+/* clean number fields — no spinners (Set Up role sizes / scale) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* — Sample-text field — reads as a label until focused; darkens + shows a faint
+   guide on focus so it's clearly editable (discoverability). — */
+.t-sample::placeholder { color: var(--t-ink-3); }
+.t-sample:focus { color: var(--t-ink-2); box-shadow: inset 0 -1px 0 0 rgba(27,24,21,0.18); }
+
+/* — Dropdown option rows — HOVER is the only row highlight. The selected row
+   shows a check, never a competing background (fixes the "weird next to the
+   check" double-highlight). Hover gated to real pointers (web-interface-
+   guidelines); ease-out + snappy (emil). — */
+.t-opt {
+  display: flex; width: 100%; align-items: center; justify-content: space-between;
+  min-height: 40px; padding: 0 12px; border-radius: 10px; border: none;
+  background: transparent; color: var(--t-ink); font-family: inherit;
+  font-size: 14px; font-weight: 500; text-align: left; cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  transition: background var(--t-dur) var(--t-ease);
+}
+@media (hover: hover) { .t-opt:hover { background: color-mix(in oklab, var(--t-ink) 5.5%, transparent); } }
+.t-opt:focus-visible { background: color-mix(in oklab, var(--t-ink) 5.5%, transparent); outline: none; }
+/* keyboard / arrow-key highlight (FontPicker `hi`) reads the SAME ground as hover —
+   one option-row highlight language, never a second competing tint. */
+.t-opt[data-active="true"] { background: color-mix(in oklab, var(--t-ink) 5.5%, transparent); }
+
+/* — List row — the shared primitive for a row that pairs a primary control (a .t-opt
+   button OR an inline input, flex:1) with a trailing action (× / status mark). THE ROW,
+   not the inner button, owns the hover/focus ground, so the highlight spans the FULL
+   width including the trailing action — fixes the "only half the row lights up" seam.
+   A child .t-opt drops its OWN hover/focus seat so there's never a partial double-
+   highlight; the row carries it. The active/selected row follows the SAME canon as every
+   picker — a small cobalt mark, NEVER a cobalt wash. Use this for every list-with-actions
+   menu so they all read identically. — */
+.t-listrow {
+  display: flex; align-items: center; gap: 2px; padding: 0 2px;
+  border-radius: 10px; transition: background var(--t-dur) var(--t-ease);
+}
+@media (hover: hover) { .t-listrow:hover { background: color-mix(in oklab, var(--t-ink) 5.5%, transparent); } }
+.t-listrow:focus-within { background: color-mix(in oklab, var(--t-ink) 5.5%, transparent); }
+.t-listrow .t-opt { border-radius: 8px; }
+@media (hover: hover) { .t-listrow .t-opt:hover { background: transparent; } }
+.t-listrow .t-opt:focus-visible { background: transparent; }
+/* inline rename field on the active row — quiet ink text; a hairline baseline appears on
+   focus so it's clearly editable (same discoverability cue as .t-sample). */
+.t-renameinput:focus { box-shadow: inset 0 -1px 0 0 rgba(27, 24, 21, 0.20); }
+
+/* — Menu enter — scale + fade FROM THE TRIGGER (Emil: popovers scale from their trigger, not centre;
+   modals are the exception — they scale from centre). Each popover sets `--pop-origin` + `--pop-y`
+   from its measured placement (down-opening → drop from the top edge; up-opening → rise from the
+   bottom edge; left/right aligned → that corner). scale 0.97 (never from 0). ease-out, ~160ms. — */
+@keyframes t-pop {
+  from { opacity: 0; transform: scale(0.97) translateY(var(--pop-y, -4px)); }
+  to   { opacity: 1; transform: none; }
+}
+.t-pop { animation: t-pop 160ms var(--t-ease); transform-origin: var(--pop-origin, top center); }
+
+/* — Pill triggers — a glassy top highlight + soft drop shadow so the white control
+   reads as a RAISED button against the near-white glass chrome (shadows, never lines;
+   same lift recipe as .t-dir cards). Subtle hover lift (real pointers only). — */
+.t-pill {
+  background: var(--t-bg-lift);
+  /* lift, not weight: the inset top-highlight is what keeps the white pill from blending
+     into near-white chrome; the drop shadow stays SOFT — a quiet seat, never a heavy float. */
+  box-shadow: inset 0 1px 0 0 var(--t-pill-edge), 0 1px 1px rgba(27, 24, 21, 0.06), 0 3px 8px -5px rgba(27, 24, 21, 0.18);
+  transition: scale var(--t-dur) var(--t-ease), background var(--t-dur) var(--t-ease), box-shadow var(--t-dur) var(--t-ease);
+}
+@media (hover: hover) { .t-pill:hover { background: var(--t-pill-hover); box-shadow: inset 0 1px 0 0 var(--t-pill-edge), 0 1px 2px rgba(27, 24, 21, 0.08), 0 6px 14px -6px rgba(27, 24, 21, 0.22); } }
+/* — Bare picker trigger — quiet clickable text (the stack readout); editability shown by a
+   hover underline, not pill chrome. — */
+.t-bare { transition: color var(--t-dur) var(--t-ease); }
+@media (hover: hover) { .t-bare:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; } }
+.t-bare:focus-visible { outline: none; text-decoration: underline; text-underline-offset: 3px; }
+
+/* — Btn (the one button) — its inline VARIANT owns colour + the resting LIFT + press-scale; hover
+   + focus live here so every button has complete states. An OUTLINE ring (not box-shadow) so it
+   composes with the inline elevation instead of being overridden; it sits on the page ground so an
+   ink ring reads on dark + light variants alike. Brightness hover is the one cue that works on every
+   variant (dark primary, light secondary, cobalt accent, transparent ghost). — */
+.t-btn:focus-visible { outline: 2px solid color-mix(in oklab, var(--t-ink) 52%, transparent); outline-offset: 3px; border-radius: 999px; }
+@media (hover: hover) { .t-btn:not(:disabled):hover { filter: brightness(0.96); } }
+
+/* — Visible keyboard focus (web-interface-guidelines). Ring via box-shadow so
+   it hugs the pill/squircle; outline:none replaces the default. — */
+.t-pill:focus-visible, .t-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px color-mix(in oklab, var(--t-ink) 40%, transparent);
+}
+
+/* — Directions cards — NO surface at rest (box-free, like the rest of the tool);
+   a faint lift on hover for affordance. The SELECTED card is the only solid surface
+   (ink inversion, set inline) — so nothing is ever drawn with an outline. — */
+.t-dir { background: var(--t-bg-lift); box-shadow: 0 1px 2px rgba(27, 24, 21, 0.05), 0 9px 24px -12px rgba(27, 24, 21, 0.11); border-radius: 22px; transition: background var(--t-dur) var(--t-ease), box-shadow var(--t-dur) var(--t-ease); }
+@media (hover: hover) { .t-dir:not([data-active="true"]):hover { box-shadow: 0 2px 4px rgba(27, 24, 21, 0.06), 0 16px 34px -14px rgba(27, 24, 21, 0.15); } }
+
+/* — Icon buttons (copy / remove) — one stroke-icon language; a 14px glyph in a 24px
+   button with an invisible 40×40 hit area (web-interface-guidelines); scale-on-press
+   (≥0.95 floor); hover lifts the ink one stop. Focus ring via box-shadow. — */
+.t-iconbtn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0; border: none; background: transparent;
+  color: var(--t-ink-3); cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0);
+  transition: color var(--t-dur) var(--t-ease), scale var(--t-press) var(--t-ease);
+}
+.t-iconbtn::after { content: ""; position: absolute; inset: -8px; } /* 40×40 hit target */
+.t-iconbtn:active { scale: 0.96; }
+.t-iconbtn:disabled { cursor: not-allowed; }
+@media (hover: hover) { .t-iconbtn:not(:disabled):hover { color: var(--t-ink-2); } }
+.t-iconbtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px color-mix(in oklab, var(--t-ink) 32%, transparent); border-radius: 10px; }
+
+/* — row-remove × — hidden until you hover (or keyboard-focus) the row, so an idle × never strands in
+   whitespace at a row's far edge. The standard list-row delete affordance. — */
+.t-rowx { opacity: 0; transition: opacity var(--t-dur) var(--t-ease); }
+.t-listrow:hover .t-rowx, .t-rowx:focus-visible { opacity: 0.6; }
+@media (hover: none) { .t-rowx { opacity: 0.5; } } /* touch: no hover → keep it reachable */
+
+/* — Letterforms specimen click-target — keyboard focus gets the ring so it's tab-reachable; hover is
+   the ROW's job (`.t-row:hover`), so this is focus-ONLY to avoid a double highlight seat. — */
+.t-spec:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px color-mix(in oklab, var(--t-ink) 28%, transparent); border-radius: 6px; }
+
+/* — Fluid reveal — the ONE earned motion: when a role turns fluid, its range + copy
+   split in (8px rise, ease-out). Crisp + quiet; viewport re-scaling stays instant. — */
+@keyframes t-fluid-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.t-fluid-in { animation: t-fluid-in var(--t-dur) var(--t-ease) both; }
+
+/* — Compare-mode swap (View ↔ Side-by-side ↔ Onion) — the layouts differ a lot, so a hard cut
+   reads as a jolt. A quick eased fade + tiny rise makes the switch buttery without feeling slow. — */
+@keyframes cmp-mode-in { from { opacity: 0; transform: translateY(5px) scale(0.994); } to { opacity: 1; transform: none; } }
+.cmp-mode-in { animation: cmp-mode-in 190ms cubic-bezier(0.2, 0, 0, 1) both; will-change: opacity, transform; }
+
+/* — Undo toast — settles up from below the dock; never from 0-scale (motion rule). — */
+@keyframes t-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* — Specimen list rows (Compare · Letterforms) — faint hover lift; separation is spacing,
+   not lines. The PICKED row carries the warm ring (set inline). — */
+.t-row { border-radius: 16px; transition: background var(--t-dur) var(--t-ease); }
+@media (hover: hover) { .t-row:not([data-picked="true"]):hover { background: rgba(255, 255, 255, 0.5); } }
+
+/* — Hover-reveal controls (Pick / remove) — keep the list calm: they appear only on row/
+   tile HOVER, on the PICKED item, or on keyboard focus (a11y). opacity (not display) so the
+   layout never shifts. Touch devices (no hover) always show them, else they're unreachable. — */
+.t-reveal { opacity: 0; transition: opacity var(--t-dur) var(--t-ease); }
+.t-row:hover .t-reveal, .t-row:focus-within .t-reveal, .t-row[data-picked="true"] .t-reveal,
+.t-dir:hover .t-reveal, .t-dir:focus-within .t-reveal, .t-dir[data-picked="true"] .t-reveal,
+.t-slot:hover .t-reveal, .t-slot:focus-within .t-reveal { opacity: 1; }
+@media (hover: none) { .t-reveal { opacity: 1; } }
+
+/* — Mode tabs — inactive hover (active uses an inline ink fill). — */
+.t-tab { transition: background var(--t-dur) var(--t-ease), color var(--t-dur) var(--t-ease); }
+@media (hover: hover) { .t-tab:not([data-active="true"]):hover { background: color-mix(in oklab, var(--t-ink) 5%, transparent); } }
+
+/* — Slider keyboard focus. — */
+.t-slider:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px rgba(27, 24, 21, 0.32); border-radius: 6px; }
+
+/* — Tune registration anchor — grab handle; red focus ring matches its signal. — */
+.t-anchor:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px var(--t-anchor); }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-pop, .t-fluid-in, .cmp-mode-in { animation: none; }
+  [style*="t-toast-in"] { animation: none !important; }
+  * { transition-duration: 0.01ms !important; }
+}

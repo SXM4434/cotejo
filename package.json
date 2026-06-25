@@ -1,0 +1,34 @@
+{
+  "name": "cotejo",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Type comparison tool — fair cap-matched font comparison on real surfaces. Its own project, NOT part of the audition lab.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/anybody": "^5.1.0",
+    "@fontsource-variable/hubot-sans": "^5.1.0",
+    "@fontsource-variable/mona-sans": "^5.1.0",
+    "@fontsource-variable/spline-sans-mono": "^5.2.8",
+    "@fontsource-variable/unbounded": "^5.1.0",
+    "@fontsource/instrument-sans": "^5.1.0",
+    "@fontsource/newsreader": "^5.1.0",
+    "@lisse/react": "^0.4.0",
+    "@web-kits/audio": "^0.1.0",
+    "html-to-image": "^1.11.13",
+    "motion": "^12.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.8"
+  }
+}
