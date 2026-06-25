@@ -160,7 +160,7 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
         ) : tune ? (
           // hover reveals the image-test result: the caps measured off the RENDERED glyphs + the scale.
           // Opt-in detail (judge letterforms, not numbers) — the ×N is the headline; the metrics hide here.
-          <span style={{ ...num, fontSize: 10.5, cursor: "help" }}
+          <span style={{ ...num, fontSize: 10.5, cursor: "help", textDecoration: "underline dotted", textDecorationColor: "var(--t-ink-3)", textUnderlineOffset: 3 }}
             title={`Measured live from the rendered glyphs — your base caps ${baseM!.cap.toFixed(2)} vs this face ${candM!.cap.toFixed(2)} (height per em). Scaled ${tune.size >= 1 ? "+" : ""}${((tune.size - 1) * 100).toFixed(0)}% so the capitals match.`}>
             cap-matched ×{tune.size.toFixed(3)}
           </span>
