@@ -10,10 +10,10 @@ import { Btn } from "../../components/Btn";
 import { StretchySlider } from "../../components/StretchySlider";
 import { BottomDock } from "../../components/BottomDock";
 import { Segmented } from "../../components/Segmented";
-import { measureFont, deriveTune, logTuneExample, buildExample, exampleCount, exportJsonl, type RawMetrics } from "../../lib/autofinetune";
-import { Check } from "../../components/icons";
+import { measureFont, deriveTune, applyCorrection, featureVector, hasCorrectionModel, logTuneExample, buildExample, exampleCount, exportJsonl, type RawMetrics } from "../../lib/autofinetune";
+import { Check, RingDot } from "../../components/icons";
 import { useSession, dirTagFor, dirAnyTagFor, roleSize, anchorForKind, tuneKey } from "../../state/SessionContext";
-import { tactileSuccess } from "../../lib/feedback";
+import { tactileSuccess, tactileSelect } from "../../lib/feedback";
 
 const BASE_PX = 96;
 const MONO = "var(--t-sans)";
@@ -131,6 +131,24 @@ export function TuneMode() {
   const candM = useMetrics(cand.measureFamily);
   const fit = React.useMemo(() => (baseM && candM ? deriveTune({ key: focusRole0.kind, anchor: matchAnchor }, baseM, candM) : null), [baseM, candM, focusRole0.kind, matchAnchor]);
   const opticalSize = fit ? fit.size : 1;
+  // AUTO-TUNE — the full engine derivation: measure both faces (canvas glyph metrics = the "image test"),
+  // cap-match, then apply the LEARNED correction (the smart layer; identity until the model trains on real
+  // calibrations). One click snaps every dial to the engine's best optical tune. This is the loop's core:
+  // the engine proposes, you nudge, your nudge trains the model, the next auto-tune is better.
+  const smartFit = React.useMemo(() => {
+    if (!baseM || !candM || !fit) return null;
+    const feats = featureVector({ key: focusRole0.kind, anchor: matchAnchor }, baseM, candM, roleSize(focusRole0, scale));
+    return applyCorrection({ size: fit.size, lh: fit.lh, track: fit.track }, feats);
+  }, [baseM, candM, fit, focusRole0, matchAnchor, scale]);
+  const autoTune = () => {
+    if (!smartFit) return;
+    tactileSelect();
+    setSizeMul(Number(smartFit.size.toFixed(3)));
+    setLhMul(Number(smartFit.lh.toFixed(3)));
+    setTrack(Math.round(smartFit.track * 1000));
+    setWght(500);
+    setSnapLabel(null);
+  };
   // SEED the dials when the pairing (or its cap-match default) changes: from the SAVED tune for this
   // base+candidate pairing if one exists, else from the optical cap-match default. This is what makes
   // a calibration survive switching the focus role / leaving Tune / reloading (the dials no longer
@@ -313,6 +331,10 @@ export function TuneMode() {
         <StretchySlider label="spacing" value={track} min={-60} max={60} step={1} onChange={setTrack} format={(v) => `${(v / 1000).toFixed(3)}em`} width={130} />
         <StretchySlider label="weight" value={wght} min={100} max={900} step={10} onChange={setWght} format={(v) => `${v}`} width={130} />
         <span style={{ marginLeft: 16, display: "inline-flex", gap: 8 }}>
+          <Btn variant="secondary" size="sm" mono onClick={autoTune}
+            title={hasCorrectionModel() ? "Auto-tune — measures both faces + applies the learned optical match" : "Auto-tune — measures both faces and snaps every dial to the cap-matched optical default (learns from real calibrations over time)"}>
+            <RingDot size={13} /> auto-tune
+          </Btn>
           <Btn variant="ghost" size="sm" mono onClick={reset}>reset</Btn>
           <Btn variant={applied ? "accent" : "primary"} size="sm" mono onClick={applyToRole}
             title={`Adopt ${cand.label} for ${focusRole.name} at this calibration`}>

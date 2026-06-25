@@ -53,9 +53,20 @@ export function logTuneExample(ex: TuneExample): void {
     const rows = read();
     rows.push(ex);
     write(rows);
+    sendExample(ex); // ALSO send to the shared store → the model can train on REAL usage across all users
   } catch {
     /* never break the UI over telemetry */
   }
+}
+
+// fire-and-forget POST to the collection backend (/api/collect). Best-effort: with no backend (local dev
+// or store not provisioned) it silently no-ops. keepalive so it survives a navigation. This is what makes
+// the smart layer train on USERS, not just one browser.
+function sendExample(ex: TuneExample): void {
+  try {
+    if (typeof fetch === "undefined") return;
+    fetch("/api/collect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ex), keepalive: true }).catch(() => {});
+  } catch { /* never break the UI over telemetry */ }
 }
 
 export function buildExample(args: {
