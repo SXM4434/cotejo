@@ -22,13 +22,14 @@ export const LOWERTHIRD_PLACEHOLDERS: Record<string, string> = {
 const MONO = "var(--t-mono)";
 
 export function LowerThirdSurface({
-  fonts, content, editable, onEdit, onFieldClick,
+  fonts, content, editable, onEdit, onFieldClick, frameless,
 }: {
   fonts: Record<string, Resolved>;
   content: Record<string, string>;
   editable: boolean;
   onEdit?: (id: string, v: string) => void;
   onFieldClick?: (fieldId: string, e: React.MouseEvent) => void;
+  frameless?: boolean;
 }) {
   const val = (id: string) => content[id] ?? LOWERTHIRD_PLACEHOLDERS[id];
   const edit = onEdit ?? (() => {});
@@ -58,7 +59,7 @@ export function LowerThirdSurface({
   };
 
   return (
-    <VideoFrame timecode="00:11:48:20">
+    <VideoFrame timecode="00:11:48:20" bare={frameless}>
       <div style={{ position: "absolute", left: "7%", right: "7%", bottom: "13%", display: "flex", alignItems: "stretch", gap: 14 }}>
         {/* the bar — a neutral light accent (NOT cobalt, which Cotejo reserves for picked state) */}
         <div style={{ width: 4, borderRadius: 2, background: VID_INK, flexShrink: 0 }} />

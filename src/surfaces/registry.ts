@@ -22,6 +22,9 @@ export type SurfaceComponentProps = {
   editable: boolean;
   onEdit?: (id: string, v: string) => void;
   onFieldClick?: (fieldId: string, e: React.MouseEvent) => void;
+  // OVERLAY (onion) — render type-only, transparent (the shared frame is drawn by the parent). Only
+  // `framed` (video) surfaces use it; every other surface ignores it.
+  frameless?: boolean;
   // EDIT CONTENT · images — your uploaded images per slot + a setter (only surfaces with an
   // image slot, e.g. Editorial, use these; the rest ignore them).
   images?: Record<string, string>;
@@ -40,6 +43,9 @@ export type SurfaceReg = {
   // has a running-body column whose MEASURE (chars/line) is worth setting — surfaces the
   // measure control appears for. Display/UI surfaces (Hero, Pricing, Dashboard) don't.
   measurable?: boolean;
+  // paints an OPAQUE ground (the video frame). Onion draws that ground ONCE and renders each layer
+  // type-only (`frameless`), so two systems crossfade over one constant frame instead of occluding.
+  framed?: boolean;
   Component: React.FC<SurfaceComponentProps>;
 };
 
@@ -52,10 +58,11 @@ export const SURFACE_COMPONENTS: SurfaceReg[] = [
   { id: "marketing", label: "Marketing", size: "big", fields: MARKETING_FIELDS, Component: MarketingSurface },
   { id: "specimen", label: "Specimen", size: "big", fields: SPECIMEN_FIELDS, Component: SpecimenSurface },
   { id: "editorial", label: "Editorial", size: "big", fields: EDITORIAL_FIELDS, measurable: true, Component: EditorialSurface },
-  // video surfaces — type over footage, for the editor's real cases (title card · chyron · caption)
-  { id: "titlecard", label: "Title card", size: "big", fields: TITLECARD_FIELDS, Component: TitleCardSurface },
-  { id: "lowerthird", label: "Lower third", size: "big", fields: LOWERTHIRD_FIELDS, Component: LowerThirdSurface },
-  { id: "caption", label: "Caption", size: "big", fields: CAPTION_FIELDS, Component: CaptionSurface },
+  // video surfaces — type over footage, for the editor's real cases (title card · chyron · caption).
+  // `framed`: opaque ground → onion draws the frame once + crossfades the type layers over it.
+  { id: "titlecard", label: "Title card", size: "big", fields: TITLECARD_FIELDS, framed: true, Component: TitleCardSurface },
+  { id: "lowerthird", label: "Lower third", size: "big", fields: LOWERTHIRD_FIELDS, framed: true, Component: LowerThirdSurface },
+  { id: "caption", label: "Caption", size: "big", fields: CAPTION_FIELDS, framed: true, Component: CaptionSurface },
 ];
 
 export const surfaceById = (id: string): SurfaceReg | undefined => SURFACE_COMPONENTS.find((s) => s.id === id);

@@ -23,13 +23,14 @@ export const TITLECARD_PLACEHOLDERS: Record<string, string> = {
 const MONO = "var(--t-mono)";
 
 export function TitleCardSurface({
-  fonts, content, editable, onEdit, onFieldClick,
+  fonts, content, editable, onEdit, onFieldClick, frameless,
 }: {
   fonts: Record<string, Resolved>;
   content: Record<string, string>;
   editable: boolean;
   onEdit?: (id: string, v: string) => void;
   onFieldClick?: (fieldId: string, e: React.MouseEvent) => void;
+  frameless?: boolean;
 }) {
   const val = (id: string) => content[id] ?? TITLECARD_PLACEHOLDERS[id];
   const edit = onEdit ?? (() => {});
@@ -67,7 +68,7 @@ export function TitleCardSurface({
   };
 
   return (
-    <VideoFrame timecode="00:02:17:04">
+    <VideoFrame timecode="00:02:17:04" bare={frameless}>
       <div
         style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column",

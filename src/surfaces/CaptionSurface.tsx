@@ -18,23 +18,23 @@ export const CAPTION_PLACEHOLDERS: Record<string, string> = {
 };
 
 export function CaptionSurface({
-  fonts, content, editable, onEdit, onFieldClick,
+  fonts, content, editable, onEdit, onFieldClick, frameless,
 }: {
   fonts: Record<string, Resolved>;
   content: Record<string, string>;
   editable: boolean;
   onEdit?: (id: string, v: string) => void;
   onFieldClick?: (fieldId: string, e: React.MouseEvent) => void;
+  frameless?: boolean;
 }) {
   const val = (id: string) => content[id] ?? CAPTION_PLACEHOLDERS[id];
   const edit = onEdit ?? (() => {});
 
-  // a subtle shadow + the frame's bottom scrim = how real burned-in captions stay readable over
-  // busy footage; here it keeps the body type legible without changing the face you're judging.
+  // a centered caption line, set low in the frame the way burned-in subtitles sit — the body face
+  // judged the way a viewer actually meets it.
   const captionS: React.CSSProperties = {
     fontWeight: 500, lineHeight: 1.34, color: VID_INK, margin: 0, textAlign: "center",
     maxWidth: "32ch", textWrap: "balance" as React.CSSProperties["textWrap"],
-    textShadow: "0 1px 4px rgba(0,0,0,0.55)",
   };
 
   const Field = ({ id, style }: { id: string; style: React.CSSProperties }) => {
@@ -54,7 +54,7 @@ export function CaptionSurface({
   };
 
   return (
-    <VideoFrame timecode="00:23:09:15" scrim="bottom">
+    <VideoFrame timecode="00:23:09:15" bare={frameless}>
       <div style={{ position: "absolute", left: 0, right: 0, bottom: "10%", display: "flex", justifyContent: "center", padding: "0 8%" }}>
         {Field({ id: "caption", style: captionS })}
       </div>

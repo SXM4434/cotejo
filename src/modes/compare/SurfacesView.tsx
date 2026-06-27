@@ -11,6 +11,7 @@ import { useViewport } from "../../state/ViewportContext";
 import { resolveFieldsFonts, pickRoleFor } from "../../surfaces/resolve";
 import { measureFont, cachedMetrics, deriveTune } from "../../lib/autofinetune";
 import type { SurfaceReg } from "../../surfaces/registry";
+import { VideoFrame } from "../../surfaces/videoChrome";
 import { Check, ArrowRight, SwapH } from "../../components/icons";
 import { popMotion } from "../../lib/popover";
 
@@ -92,7 +93,7 @@ function fileToDownscaledDataURL(file: File, maxW = 1400): Promise<string> {
   });
 }
 
-function SourceSurface({ source, editable = false, onFieldClick, opacity, absolute }: { source: Source; editable?: boolean; onFieldClick?: (fieldId: string, e: React.MouseEvent) => void; opacity?: number; absolute?: boolean }) {
+function SourceSurface({ source, editable = false, onFieldClick, opacity, absolute, frameless }: { source: Source; editable?: boolean; onFieldClick?: (fieldId: string, e: React.MouseEvent) => void; opacity?: number; absolute?: boolean; frameless?: boolean }) {
   const surface = useSurface();
   const { roles, scale, winners, surfaceContent, setSurfaceField, surfaceImages, setSurfaceImage, measure } = useSession();
   const { vw } = useViewport();
@@ -131,6 +132,7 @@ function SourceSurface({ source, editable = false, onFieldClick, opacity, absolu
       <Surface fonts={fonts} content={content} editable={editable}
         onEdit={editable ? (id, v) => setSurfaceField(surface.id, id, v) : undefined}
         onFieldClick={onFieldClick} images={images} onImage={onImage}
+        frameless={frameless}
         measure={surface.measurable ? measure : undefined} />
     </div>
   );
@@ -317,10 +319,17 @@ const resolvePath = (root: Element, path: number[]): Element | null => {
   return cur;
 };
 
+// the shared video frame for a framed onion: ONE frame (border + REC/timecode) that both type-only
+// layers crossfade over — so the chrome is drawn once and the two systems trade inside one frame.
+function FrameGround({ children }: { children: React.ReactNode }) {
+  return <VideoFrame>{children}</VideoFrame>;
+}
+
 // ONION — A pinned vs B, opacity crossfades (0 = all A · 100 = all B). Registration = the
 // lab's anchor-lock: CLICK any element → resolve the same element in both layers → translate
 // B so it registers (handles long-page reflow drift). Smooth snap + "aligned to …" readout.
 function Onion({ a, b, fade }: { a: Source; b: Source | undefined; fade: number }) {
+  const surface = useSurface();
   const aRef = React.useRef<HTMLDivElement>(null);
   const bRef = React.useRef<HTMLDivElement>(null);
   const [anchorPath, setAnchorPath] = React.useState<number[] | null>(null);
@@ -369,10 +378,21 @@ function Onion({ a, b, fade }: { a: Source; b: Source | undefined; fade: number 
         )}
       </div>
       <div style={{ position: "relative", cursor: "crosshair", userSelect: "none" }} onClick={onClick}>
-        <div ref={aRef}><SourceSurface source={a} opacity={1 - fade / 100} /></div>
-        <div ref={bRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: fade / 100, transform: shift ? `translateY(${shift}px)` : undefined, transition: "transform 240ms cubic-bezier(0.2,0,0,1)" }}>
-          <SourceSurface source={b} />
-        </div>
+        {surface.framed ? (
+          // FRAMED (video): paint the dark frame ONCE; both layers render type-only (frameless) and
+          // crossfade over it — two opaque frames would occlude each other, not superimpose the type.
+          <FrameGround>
+            <div ref={aRef} style={{ position: "absolute", inset: 0, opacity: 1 - fade / 100 }}><SourceSurface source={a} frameless /></div>
+            <div ref={bRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: fade / 100, transform: shift ? `translateY(${shift}px)` : undefined, transition: "transform 240ms cubic-bezier(0.2,0,0,1)" }}><SourceSurface source={b} frameless /></div>
+          </FrameGround>
+        ) : (
+          <>
+            <div ref={aRef}><SourceSurface source={a} opacity={1 - fade / 100} /></div>
+            <div ref={bRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: fade / 100, transform: shift ? `translateY(${shift}px)` : undefined, transition: "transform 240ms cubic-bezier(0.2,0,0,1)" }}>
+              <SourceSurface source={b} />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
