@@ -5,6 +5,8 @@
 import { ModeProvider, useMode } from "./state/ModeContext";
 import { WorkspaceProvider } from "./state/WorkspaceContext";
 import { ViewportProvider } from "./state/ViewportContext";
+import { TourProvider } from "./state/TourContext";
+import { Walkthrough } from "./components/Walkthrough";
 import { GlobalBar } from "./components/GlobalBar";
 import { CompareProvider } from "./modes/compare/CompareContext";
 import { CompareBar } from "./modes/compare/CompareBar";
@@ -52,6 +54,7 @@ function Shell() {
         </div>
       )}
       <UndoToast />
+      <Walkthrough />
     </>
   );
 }
@@ -61,7 +64,9 @@ export default function App() {
     <WorkspaceProvider>
       <ViewportProvider>
         <ModeProvider>
-          <Shell />
+          <TourProvider>
+            <Shell />
+          </TourProvider>
         </ModeProvider>
       </ViewportProvider>
     </WorkspaceProvider>

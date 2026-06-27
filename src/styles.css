@@ -279,6 +279,10 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 @keyframes cmp-mode-in { from { opacity: 0; transform: translateY(5px) scale(0.994); } to { opacity: 1; transform: none; } }
 .cmp-mode-in { animation: cmp-mode-in 190ms cubic-bezier(0.2, 0, 0, 1) both; will-change: opacity, transform; }
 
+/* — Walkthrough step diagram — a quiet crossfade as you step through the tour (keyed per step). — */
+@keyframes t-tour-fade { from { opacity: 0; } to { opacity: 1; } }
+.t-tour-fade { animation: t-tour-fade 200ms var(--t-ease) both; }
+
 /* — Undo toast — settles up from below the dock; never from 0-scale (motion rule). — */
 @keyframes t-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
@@ -307,7 +311,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .t-anchor:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--t-bg), 0 0 0 4px var(--t-anchor); }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-pop, .t-fluid-in, .cmp-mode-in { animation: none; }
+  .t-pop, .t-fluid-in, .cmp-mode-in, .t-tour-fade { animation: none; }
   [style*="t-toast-in"] { animation: none !important; }
   * { transition-duration: 0.01ms !important; }
 }

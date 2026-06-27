@@ -10,6 +10,7 @@ import { useMode, MODES } from "../state/ModeContext";
 import { useNarrow } from "../lib/useNarrow";
 import { tactileSelect } from "../lib/feedback";
 import { SessionSwitcher } from "./SessionSwitcher";
+import { TourButton } from "./Walkthrough";
 
 // The viewport lens moved OUT of the top chrome → it's a preview/render control, so it lives
 // in the dock (Compare) + Set Up's controls as a `viewport ▾` dropdown (see ViewportPicker).
@@ -87,6 +88,7 @@ export function GlobalBar({ right }: { right?: React.ReactNode }) {
         {!narrow && (
           <div style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
             {right}
+            <TourButton />
             <SessionSwitcher />
           </div>
         )}
@@ -96,6 +98,7 @@ export function GlobalBar({ right }: { right?: React.ReactNode }) {
       {narrow && (
         <div style={{ marginTop: 10, paddingInline: "clamp(6px,1.6vw,22px)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
           {right}
+          <TourButton />
           <SessionSwitcher />
         </div>
       )}
