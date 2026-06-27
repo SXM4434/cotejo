@@ -338,6 +338,52 @@ function CapMatchNote({ anchor }: { anchor: "cap" | "cap-x" }) {
   );
 }
 
+// SURFACE DISCOVERY coachmark — wraps the surface switcher in the dock. New users land on "Letterforms"
+// (abstract specimens) and never realize this pill swaps to REAL layouts (hero, article, pricing…). A
+// one-time, dismissible pointer fixes that. Chained AFTER the cap-match note (so it's not two prompts at
+// once) and auto-dismisses the moment they switch to a real surface (= they found it). (feedback 2026-06)
+function SurfaceHint({ show, children }: { show: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = React.useState<{ left: number; bottom: number } | null>(null);
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (!show) { window.localStorage.setItem("cotejo.surfacehint.seen", "1"); setOpen(false); return; } // on a real surface already → they know
+      const seen = window.localStorage.getItem("cotejo.surfacehint.seen") === "1";
+      const capSeen = window.localStorage.getItem("cotejo.capmatch.seen") === "1"; // wait until the cap-match note is gone
+      setOpen(!seen && capSeen);
+    } catch { /* private mode */ }
+  }, [show]);
+  // PORTAL the coachmark to <body> (the dock clips its overflow) + position above the pill from its rect.
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => { const r = ref.current?.getBoundingClientRect(); if (r) setPos({ left: Math.max(132, r.left + r.width / 2), bottom: window.innerHeight - r.top + 12 }); };
+    place();
+    window.addEventListener("resize", place); window.addEventListener("scroll", place, true);
+    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
+  }, [open]);
+  const dismiss = () => { try { window.localStorage.setItem("cotejo.surfacehint.seen", "1"); } catch { /* private */ } setOpen(false); };
+  return (
+    <span ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+      {children}
+      {open && pos && ReactDOM.createPortal(
+        <span role="status" style={{
+          position: "fixed", left: pos.left, bottom: pos.bottom, transform: "translateX(-50%)", zIndex: 80, width: 250,
+          background: "rgba(255,255,255,0.98)", color: "var(--t-ink-2)", padding: "10px 12px 11px", borderRadius: "var(--t-r-block)",
+          fontFamily: "var(--t-ui-sans, system-ui, sans-serif)", fontSize: 12, lineHeight: 1.42, textAlign: "left",
+          boxShadow: "inset 0 1px 0 0 var(--t-white-edge), inset 0 0 0 1px rgba(var(--t-scrim),0.05), 0 14px 32px -14px rgba(var(--t-scrim),0.3)",
+        }}>
+          <span style={{ display: "block", marginBottom: 7 }}><strong style={{ fontWeight: 600, color: "var(--t-ink)" }}>See it in a real layout.</strong> Switch this to a hero, article, or pricing page to judge your fonts in context — not just specimens.</span>
+          <button onClick={dismiss} style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "var(--t-sans)", fontSize: 11, fontWeight: 600, color: "var(--t-match)" }}>got it</button>
+          <span aria-hidden style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "7px solid rgba(255,255,255,0.98)" }} />
+        </span>,
+        document.body,
+      )}
+    </span>
+  );
+}
+
 function RoleHeadline({ surfaceLabel }: { surfaceLabel?: string }) {
   const { roleName, baseSize, autoTune } = useCompare();
   const onLetterforms = !surfaceLabel || surfaceLabel === "Letterforms";
@@ -545,7 +591,9 @@ export function CompareContent() {
 
       {/* the INSTRUMENT PANEL — all the controls you adjust while watching the type */}
       <BottomDock onHeight={setDockH}>
-        <PillSelect value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />
+        <SurfaceHint show={surfaceId === "letterforms"}>
+          <PillSelect label="preview in" value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />
+        </SurfaceHint>
         {dgap}
         {onLetterforms ? (
           <>
