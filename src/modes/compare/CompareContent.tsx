@@ -23,6 +23,7 @@ import { SurfaceCanvas, useSources, type CmpMode } from "./SurfacesView";
 import { SURFACE_COMPONENTS, surfaceById } from "../../surfaces/registry";
 import { leadingForMeasure } from "../../surfaces/resolve";
 import { useMode } from "../../state/ModeContext";
+import { readParam, writeParams } from "../../lib/urlState";
 import { topRecs, type Rec } from "../../lib/recommend";
 import { SAMPLES, OT_FEATURES, featureOn, featureOff, type OtFeature } from "../../data/proofStrings";
 import { featureSupported } from "../../lib/otSupport";
@@ -531,11 +532,17 @@ function MeasureControl({ value, onChange }: { value: number; onChange: (v: numb
 
 export function CompareContent() {
   const { roleOpts, focusRoleId, setFocusRoleId, autoTune } = useCompare();
-  const [surfaceId, setSurfaceId] = React.useState("letterforms");
-  const [mode, setMode] = React.useState<CmpMode>("view");
-  const [showKey, setShowKey] = React.useState("stack");
-  const [vsKey, setVsKey] = React.useState("");
-  const [fade, setFade] = React.useState(100);
+  // the comparison VIEW is URL-synced (below) so a refresh holds it AND a Share link reproduces the
+  // exact view, not just the setup. Initial values come from the URL (a shared/deep link), else default.
+  const [surfaceId, setSurfaceId] = React.useState(() => readParam("surface") || "letterforms");
+  const [mode, setMode] = React.useState<CmpMode>(() => {
+    const m = readParam("cmp"); return m === "tile" || m === "onion" ? m : "view";
+  });
+  const [showKey, setShowKey] = React.useState(() => readParam("show") || "stack");
+  const [vsKey, setVsKey] = React.useState(() => readParam("vs") || "");
+  const [fade, setFade] = React.useState(() => {
+    const f = Number(readParam("fade")); return Number.isFinite(f) ? Math.max(0, Math.min(100, f)) : 100;
+  });
   // reserve exactly the bottom band the floating dock occupies (measured live), so the stack
   // tray + last surface rows never hide under it — the dock wraps taller when narrow.
   const [dockH, setDockH] = React.useState(140);
@@ -543,7 +550,7 @@ export function CompareContent() {
   // Letterforms pick/edit + sample/ground/blind, and every surface's pick/edit.
   const [lmMode, setLmMode] = React.useState<"font" | "text">("font");
   const [sampleId, setSampleId] = React.useState("word");
-  const [ground, setGround] = React.useState<"paper" | "dark">("paper");
+  const [ground, setGround] = React.useState<"paper" | "dark">(() => (readParam("ground") === "dark" ? "dark" : "paper"));
   const [blind, setBlind] = React.useState(false);
   // OpenType proof: which features each font demonstrates (off → on). Default ALL → you see the
   // whole OpenType layer at once; the OtPicker narrows it. Lives in the dock only in OpenType mode.
@@ -573,6 +580,19 @@ export function CompareContent() {
   const vsCandidates = all.filter((s) => s.key !== effShow);
   const effVs = vsCandidates.some((s) => s.key === vsKey) ? vsKey : (vsCandidates[0]?.key ?? "");
   const roleSel = roleOpts.map((r) => ({ value: r.id, label: r.name }));
+
+  // SYNC the view → URL (defaults omitted so a plain session stays a clean URL). This is what makes
+  // the Share link reproduce the exact comparison: shareActive() copies location.search verbatim.
+  React.useEffect(() => {
+    writeParams({
+      surface: surfaceId === "letterforms" ? null : surfaceId,
+      cmp: mode === "view" ? null : mode,
+      show: effShow === "stack" ? null : effShow,
+      vs: mode === "onion" && effVs ? effVs : null,
+      fade: mode === "onion" && fade !== 100 ? String(fade) : null,
+      ground: ground === "dark" ? "dark" : null,
+    });
+  }, [surfaceId, mode, effShow, effVs, fade, ground]);
 
   return (
     <div style={{ paddingLeft: "clamp(6px,1.6vw,22px)", paddingBottom: dockH + 28 }}>

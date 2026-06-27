@@ -2,6 +2,7 @@
 // the Global-bar mode tabs. Compare is the gravitational center; the rest scaffold
 // in as honest "planned" modes until built. URL param `mode` drives it (shareable).
 import React from "react";
+import { writeParams } from "../lib/urlState";
 
 export type Mode = "compare" | "directions" | "tune" | "setup";
 
@@ -20,6 +21,8 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   const valid = MODES.some((m) => m.id === init);
   // first paint lands on SET UP — you build the system before you compare (a ?mode= param still wins).
   const [mode, setMode] = React.useState<Mode>(valid ? (init as Mode) : "setup");
+  // keep the URL in sync so a refresh holds the mode AND a shared link reopens it (default omitted).
+  React.useEffect(() => { writeParams({ mode: mode === "setup" ? null : mode }); }, [mode]);
   return <ModeCtx.Provider value={{ mode, setMode }}>{children}</ModeCtx.Provider>;
 }
 

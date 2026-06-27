@@ -41,6 +41,9 @@ const decodeShare = (s: string) => JSON.parse(decodeURIComponent(escape(atob(s.r
 // a partial stack already decided. Seeded ONCE (flag-guarded); never clobbers your own sessions.
 const DEMO_ID = "demo";
 const DEMO_FLAG = "cotejo.demo-seeded.v1";
+// captured ONCE at module load — before any effect strips the #share= hash. The demo effect guards on
+// this (not the live hash), so a shared link always wins `active` even under StrictMode's double-invoke.
+const HAS_SHARE_ON_LOAD = typeof window !== "undefined" && window.location.hash.includes("share=");
 const DEMO_WORK = {
   roles: [
     { id: "role-display", name: "Display", fontId: "unbounded", step: 5, kind: "display" },
@@ -130,25 +133,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     const work = window.localStorage.getItem(workKeyFor(ws.activeId));
     // share the SETUP only (no images — too big for a URL); images stay local to your machine
     const code = encodeShare({ format: "cotejo", v: 1, name: active.name, work: work ? JSON.parse(work) : {} } as ExportBlob);
-    const url = `${location.origin}${location.pathname}#share=${code}`;
+    // carry the live VIEW (location.search — surface / onion / cap-match / ground, kept URL-synced)
+    // so the link reopens the EXACT comparison, not just the setup. The #share= blob holds the setup.
+    const url = `${location.origin}${location.pathname}${location.search}#share=${code}`;
     navigator.clipboard?.writeText(url).catch(() => {});
     return url;
   };
 
-  // SHARED-LINK ON LOAD — a #share=… hash opens the encoded setup as a NEW session, then clears.
-  React.useEffect(() => {
-    const m = typeof window !== "undefined" ? window.location.hash.match(/[#&]share=([^&]+)/) : null;
-    if (!m) return;
-    try { const blob = decodeShare(m[1]) as ExportBlob; if (blob?.work) importData(blob.name ? `${blob.name} (shared)` : "Shared", blob.work); } catch { /* bad link */ }
-    window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // FIRST-RUN DEMO — seed the ready-to-record "Demo" session once, then make it active (so the app
-  // opens on a real, considered setup). A share link takes precedence; the flag stops it ever re-adding.
+  // opens on a real, considered setup). MUST run BEFORE the share-load effect: a share link takes
+  // precedence, and this effect's hash guard only works while the #share= hash is still present
+  // (share-load strips it). The flag stops it ever re-adding.
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.location.hash.includes("share=")) return;
+    if (HAS_SHARE_ON_LOAD) return; // a shared link is loading → don't seed/steal active
     try {
       if (window.localStorage.getItem(DEMO_FLAG)) return;
       window.localStorage.setItem(workKeyFor(DEMO_ID), JSON.stringify(DEMO_WORK));
@@ -156,6 +154,17 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setWs((w) => (w.sessions.some((s) => s.id === DEMO_ID) ? w
         : { activeId: DEMO_ID, sessions: [{ id: DEMO_ID, name: "Demo — start here" }, ...w.sessions] }));
     } catch { /* quota */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // SHARED-LINK ON LOAD — a #share=… hash opens the encoded setup as a NEW session + makes it active
+  // (runs after the demo effect, so its setWs wins `activeId`), then clears the hash (keeps the view
+  // query string so the comparison view restores too).
+  React.useEffect(() => {
+    const m = typeof window !== "undefined" ? window.location.hash.match(/[#&]share=([^&]+)/) : null;
+    if (!m) return;
+    try { const blob = decodeShare(m[1]) as ExportBlob; if (blob?.work) importData(blob.name ? `${blob.name} (shared)` : "Shared", blob.work); } catch { /* bad link */ }
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -7,6 +7,7 @@ import {
 } from "../../lib/autofinetune";
 import { useSession, FACES, sizeAtViewport, type Face } from "../../state/SessionContext";
 import { useViewport } from "../../state/ViewportContext";
+import { readParam, writeParams } from "../../lib/urlState";
 
 export { FACES, type Face }; // re-export so existing importers keep working
 
@@ -48,7 +49,9 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
   // chosen Mobile/Tablet/Desktop width (Auto = real screen) — the same lens Set Up uses.
   const { baseId, setBaseId, candId, setCandId, text, setText, base, cand, roles, focusRoleId, setFocusRoleId, scale, candidateIds, addCandidate, removeCandidate, replaceCandidate, winners, setWinner } = useSession();
   const { vw } = useViewport();
-  const [autoTune, setAutoTune] = React.useState(true);
+  // cap-match defaults ON; ?cap=0 (from a shared link / refresh) turns it off. Synced back to the URL.
+  const [autoTune, setAutoTune] = React.useState(() => readParam("cap") !== "0");
+  React.useEffect(() => { writeParams({ cap: autoTune ? null : "0" }); }, [autoTune]);
   const roleOpts = roles.map((r) => ({ id: r.id, name: r.name }));
   const focusRole = roles.find((r) => r.id === focusRoleId) ?? roles[0];
   const roleName = focusRole?.name ?? "";

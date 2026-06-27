@@ -13,6 +13,11 @@ export const VID_INK_2 = "var(--t-ink-2)";
 export const VID_INK_3 = "var(--t-ink-3)";
 const MONO = "var(--t-mono)";
 const FRAME_BORDER = "color-mix(in oklab, var(--t-ink) 16%, transparent)";
+// the frame renders at a fixed NATURAL size and scales to fit narrow containers, so the TYPE keeps its
+// real proportion to the frame — a phone-width preview shrinks uniformly (like real footage) instead of
+// the type overflowing a smaller frame and clipping. Scale ≤ 1 (never upscales past natural).
+const NAT_W = 720;
+const NAT_H = (NAT_W * 9) / 16; // 405 — 16:9
 
 export function VideoFrame({
   children, timecode = "00:14:22:09", bare = false,
@@ -23,23 +28,38 @@ export function VideoFrame({
   // + chrome) is painted ONCE by the parent so two type layers crossfade over one constant frame.
   bare?: boolean;
 }) {
+  const outerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+  React.useLayoutEffect(() => {
+    if (bare) return;
+    const measure = () => { const w = outerRef.current?.clientWidth ?? NAT_W; setScale(Math.min(1, w / NAT_W)); };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (outerRef.current) ro.observe(outerRef.current);
+    return () => ro.disconnect();
+  }, [bare]);
+
   if (bare) return <div style={{ position: "absolute", inset: 0 }}>{children}</div>;
   return (
-    <div
-      style={{
-        position: "relative", width: "100%", maxWidth: 720, aspectRatio: "16 / 9",
-        borderRadius: "var(--t-r-block)", overflow: "hidden",
-        background: "transparent", border: `1px solid ${FRAME_BORDER}`,
-      }}
-    >
-      {/* capture chrome — REC + timecode, tiny mono in the top corners. Signals "this is video"
-          (the whole point of the preview) without competing with the type being judged. */}
-      <div aria-hidden style={{ position: "absolute", top: 14, left: 16, display: "inline-flex", alignItems: "center", gap: 7 }}>
-        <span style={{ width: 7, height: 7, borderRadius: 999, background: "#e0564b" }} />
-        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.1em", color: VID_INK_3 }}>REC</span>
+    // outer: fluid up to the natural width, height = scaled frame height; clips the unscaled layout box.
+    <div ref={outerRef} style={{ width: "100%", maxWidth: NAT_W, height: NAT_H * scale, overflow: "hidden" }}>
+      <div
+        style={{
+          position: "relative", width: NAT_W, height: NAT_H, transformOrigin: "top left",
+          transform: scale !== 1 ? `scale(${scale})` : undefined,
+          borderRadius: "var(--t-r-block)", overflow: "hidden",
+          background: "transparent", border: `1px solid ${FRAME_BORDER}`,
+        }}
+      >
+        {/* capture chrome — REC + timecode, tiny mono in the top corners. Signals "this is video"
+            (the whole point of the preview) without competing with the type being judged. */}
+        <div aria-hidden style={{ position: "absolute", top: 14, left: 16, display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: "#e0564b" }} />
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.1em", color: VID_INK_3 }}>REC</span>
+        </div>
+        <div aria-hidden style={{ position: "absolute", top: 14, right: 16, fontFamily: MONO, fontSize: 10, letterSpacing: "0.06em", color: VID_INK_3 }}>{timecode}</div>
+        {children}
       </div>
-      <div aria-hidden style={{ position: "absolute", top: 14, right: 16, fontFamily: MONO, fontSize: 10, letterSpacing: "0.06em", color: VID_INK_3 }}>{timecode}</div>
-      {children}
     </div>
   );
 }
