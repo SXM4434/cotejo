@@ -11,44 +11,72 @@ import { Btn } from "./Btn";
 import { Close, ArrowRight } from "./icons";
 
 const MONO = "var(--t-mono)";
+const SANS = "var(--t-sans)";
+const SERIF = "Georgia, 'Times New Roman', serif";
 const HAIR = (pct: number) => `color-mix(in oklab, var(--t-ink) ${pct}%, transparent)`;
 
-// ── schematic diagrams (one per step) ──
+// ── diagrams (one per step) — REAL type, not placeholder boxes. Two universally-available faces
+// (Georgia serif vs the app sans) carry the contrast, so they render the same for everyone. ──
 function DiagCapMatch() {
-  // two faces (different widths) held to ONE cap height — top to the dashed cap-line, foot to baseline.
+  // two faces held to ONE cap height — real caps grazing the dashed cap-line, sitting on a baseline.
   return (
-    <div style={{ position: "relative", width: 196, height: 60 }}>
-      <span style={{ position: "absolute", left: 0, right: 0, top: 6, borderTop: `1px dashed ${HAIR(32)}` }} />
-      <span style={{ position: "absolute", left: 0, right: 0, bottom: 8, borderTop: `1px solid ${HAIR(20)}` }} />
-      <span style={{ position: "absolute", left: 46, top: 6, bottom: 8, width: 28, background: "var(--t-ink)", borderRadius: 3 }} />
-      <span style={{ position: "absolute", right: 46, top: 6, bottom: 8, width: 44, background: "var(--t-ink)", opacity: 0.5, borderRadius: 3 }} />
+    <div style={{ position: "relative", display: "inline-flex", alignItems: "baseline", gap: 32, padding: "14px 8px 16px" }}>
+      <span aria-hidden style={{ position: "absolute", left: -4, right: -4, top: 12, borderTop: `1px dashed ${HAIR(34)}` }} />
+      <span aria-hidden style={{ position: "absolute", left: -4, right: -4, bottom: 14, borderTop: `1px solid ${HAIR(18)}` }} />
+      <span style={{ fontFamily: SERIF, fontSize: 42, lineHeight: 1, color: "var(--t-ink)" }}>Ha</span>
+      <span style={{ fontFamily: SANS, fontSize: 42, fontWeight: 600, lineHeight: 1, color: "var(--t-ink)" }}>Ha</span>
     </div>
   );
 }
 function DiagRoles() {
-  // a type ramp — display → body → label.
-  const rows = [130, 94, 58];
+  // a real type ramp — display → body → label, in actual words.
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-      {rows.map((w, n) => <span key={n} style={{ width: w, height: 13 - n * 3, background: "var(--t-ink)", opacity: 1 - n * 0.28, borderRadius: 3 }} />)}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
+      <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1, color: "var(--t-ink)" }}>Display</span>
+      <span style={{ fontFamily: SANS, fontSize: 14, lineHeight: 1, color: "var(--t-ink)", opacity: 0.82 }}>Body text</span>
+      <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--t-ink-3)" }}>Label</span>
+    </div>
+  );
+}
+function DiagRecs() {
+  // a recommendation list — real font names, the picked one marked in cobalt (its reserved meaning).
+  const rows: [string, boolean][] = [["Unbounded", true], ["Newsreader", false], ["Hanken Grotesk", false]];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      {rows.map(([name, rec]) => (
+        <span key={name} style={{ display: "inline-flex", alignItems: "center", gap: 9, fontFamily: SANS, fontSize: 15, color: "var(--t-ink)" }}>
+          <span style={{ width: 5, height: 5, borderRadius: 99, background: rec ? "var(--t-match)" : HAIR(26), flexShrink: 0 }} />
+          {name}
+        </span>
+      ))}
+    </div>
+  );
+}
+function DiagCompare() {
+  // onion — the same word in two faces, overlaid + offset (one ghosted): crossfade to compare.
+  return (
+    <div style={{ position: "relative", width: 168, height: 50, display: "grid", placeItems: "center" }}>
+      <span style={{ position: "absolute", fontFamily: SANS, fontSize: 34, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--t-ink)" }}>Form</span>
+      <span style={{ position: "absolute", fontFamily: SERIF, fontSize: 34, color: "var(--t-ink)", opacity: 0.4, transform: "translate(7px, 3px)" }}>Form</span>
     </div>
   );
 }
 function DiagSurfaces() {
-  // a mini layout frame with a headline + subline — type in a real surface (echoes the video frame).
+  // a mini 16:9 layout with real headline + subline — type in a real surface (echoes the video frame).
   return (
-    <div style={{ width: 132, aspectRatio: "16 / 9", borderRadius: 6, border: `1px solid ${HAIR(24)}`, display: "flex", flexDirection: "column", justifyContent: "center", gap: 7, padding: "0 16px" }}>
-      <span style={{ width: "72%", height: 9, background: "var(--t-ink)", borderRadius: 2 }} />
-      <span style={{ width: "46%", height: 6, background: "var(--t-ink)", opacity: 0.5, borderRadius: 2 }} />
+    <div style={{ width: 150, aspectRatio: "16 / 9", borderRadius: 6, border: `1px solid ${HAIR(24)}`, display: "flex", flexDirection: "column", justifyContent: "center", gap: 3, padding: "0 16px", overflow: "hidden" }}>
+      <span style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1, color: "var(--t-ink)" }}>After the Tide</span>
+      <span style={{ fontFamily: SANS, fontSize: 9, lineHeight: 1.1, color: "var(--t-ink)", opacity: 0.55 }}>A film in three parts</span>
     </div>
   );
 }
 function DiagTune() {
-  // two offset frames — the tracing-paper overlay (the registration edge in Tune red).
+  // tracing-paper overlay — the same word with a ghost copy + the Tune-red registration baseline.
   return (
-    <div style={{ position: "relative", width: 118, height: 62 }}>
-      <span style={{ position: "absolute", left: 0, top: 0, width: 94, height: 50, borderRadius: 6, border: `1px solid ${HAIR(26)}`, background: "var(--t-bg-lift)" }} />
-      <span style={{ position: "absolute", left: 18, top: 12, width: 94, height: 50, borderRadius: 6, border: "1px solid var(--t-anchor)", background: "color-mix(in oklab, var(--t-bg-lift) 82%, transparent)" }} />
+    <div style={{ position: "relative", width: 132, height: 52, display: "grid", placeItems: "center" }}>
+      <span style={{ position: "absolute", fontFamily: SANS, fontSize: 30, fontWeight: 600, color: "var(--t-ink)" }}>Aa</span>
+      <span style={{ position: "absolute", fontFamily: SERIF, fontSize: 30, color: "var(--t-anchor)", opacity: 0.65, transform: "translate(7px, 2px)" }}>Aa</span>
+      <span aria-hidden style={{ position: "absolute", left: 26, right: 26, bottom: 12, borderTop: "1px solid var(--t-anchor)", opacity: 0.5 }} />
     </div>
   );
 }
@@ -58,10 +86,14 @@ const STEPS = [
     body: "Cotejo resizes every candidate to share one cap height with your base — so what you’re judging is the shape of the letters, not which font happens to render bigger." },
   { kicker: "SET UP", title: "Pick the roles you use", Visual: DiagRoles,
     body: "Define the roles in your system — display, body, labels — and a base font to beat. A demo is already loaded, so you can dive straight in." },
-  { kicker: "COMPARE", title: "See it in real layouts", Visual: DiagSurfaces,
-    body: "Switch “preview in” from letterforms to a real surface — hero, article, pricing, or title cards, lower-thirds and captions for video. Your type, where it actually ships." },
-  { kicker: "KEEP IT", title: "Save a direction, then fine-tune", Visual: DiagTune,
-    body: "Save a pairing you like as a Direction, then open Tune to calibrate it against your base with a tracing-paper overlay." },
+  { kicker: "FIND FONTS", title: "Audition real candidates", Visual: DiagRecs,
+    body: "Search your own fonts or pull straight from Google Fonts — and Cotejo recommends candidates that pair well with your base, ranked, with a ● on the strongest." },
+  { kicker: "COMPARE", title: "Three ways to weigh them", Visual: DiagCompare,
+    body: "View one system, set candidates Side by side, or Onion two and crossfade — overlay the same words in two faces and watch exactly what changes." },
+  { kicker: "REAL LAYOUTS", title: "See it where it ships", Visual: DiagSurfaces,
+    body: "Switch “preview in” from letterforms to a real surface — hero, article, pricing, or title cards, lower-thirds and captions for video." },
+  { kicker: "KEEP IT", title: "Save, fine-tune, export", Visual: DiagTune,
+    body: "Save a pairing as a Direction, calibrate it against your base in Tune with a tracing-paper overlay, then export your system when it’s right." },
 ];
 
 export function Walkthrough() {
@@ -140,7 +172,7 @@ export function Walkthrough() {
 export function TourButton() {
   const { openTour } = useTour();
   return (
-    <button className="t-iconbtn" onClick={openTour} aria-label="Take the tour" title="Take the tour" style={{ color: "var(--t-ink-3)" }}>
+    <button className="t-iconbtn" onClick={openTour} aria-label="Take the tour" title="Take the tour — replay the walkthrough" style={{ color: "var(--t-ink-2)" }}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
         <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.3" />
         <path d="M6.3 6.3c0-1 .8-1.7 1.7-1.7s1.7.7 1.7 1.6c0 1.3-1.6 1.3-1.6 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
