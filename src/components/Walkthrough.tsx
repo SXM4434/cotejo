@@ -138,15 +138,21 @@ export function Walkthrough() {
           transition: "opacity 200ms var(--t-ease), transform 200ms var(--t-ease)",
         }}
       >
-        <button className="t-iconbtn" onClick={close} aria-label="Close walkthrough" style={{ position: "absolute", top: 14, right: 14 }}><Close size={15} /></button>
+        {/* close gets its OWN row above the diagram — never overlapped/covered by it (pulled up into
+            the top padding so it costs almost no height) */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -8, marginBottom: 4 }}>
+          <button className="t-iconbtn" onClick={close} aria-label="Close walkthrough" style={{ color: "var(--t-ink-3)" }}><Close size={15} /></button>
+        </div>
 
         {/* the diagram — keyed on step so it crossfades on change */}
-        <div key={i} className="t-tour-fade" style={{ background: "var(--t-surface-2)", borderRadius: "var(--t-r-block)", height: 100, display: "grid", placeItems: "center", marginBottom: 18, overflow: "hidden" }}>
+        <div key={i} className="t-tour-fade" style={{ background: "var(--t-surface-2)", borderRadius: "var(--t-r-block)", height: 100, display: "grid", placeItems: "center", marginBottom: 16, overflow: "hidden" }}>
           <Visual />
         </div>
 
-        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--t-ink-3)" }}>{step.kicker}</div>
-        <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--t-ink)", margin: "8px 0 0" }}>{step.title}</h2>
+        {/* kicker + title read as ONE unit — eyebrow sits tight to its heading (tighter than the gap
+            above it to the diagram) */}
+        <div style={{ fontFamily: MONO, fontSize: 10, lineHeight: 1, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--t-ink-3)" }}>{step.kicker}</div>
+        <h2 style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--t-ink)", margin: "5px 0 0" }}>{step.title}</h2>
         <p style={{ fontSize: 14, lineHeight: 1.52, color: "var(--t-ink-2)", margin: "9px 0 0", minHeight: 64 }}>{step.body}</p>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 20 }}>
