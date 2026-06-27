@@ -11,6 +11,9 @@ import { DashboardSurface, DASHBOARD_FIELDS } from "./DashboardSurface";
 import { MarketingSurface, MARKETING_FIELDS } from "./MarketingSurface";
 import { SpecimenSurface, SPECIMEN_FIELDS } from "./SpecimenSurface";
 import { EditorialSurface, EDITORIAL_FIELDS } from "./EditorialSurface";
+import { TitleCardSurface, TITLECARD_FIELDS } from "./TitleCardSurface";
+import { LowerThirdSurface, LOWERTHIRD_FIELDS } from "./LowerThirdSurface";
+import { CaptionSurface, CAPTION_FIELDS } from "./CaptionSurface";
 import type { SurfaceField, Resolved } from "./resolve";
 
 export type SurfaceComponentProps = {
@@ -49,6 +52,10 @@ export const SURFACE_COMPONENTS: SurfaceReg[] = [
   { id: "marketing", label: "Marketing", size: "big", fields: MARKETING_FIELDS, Component: MarketingSurface },
   { id: "specimen", label: "Specimen", size: "big", fields: SPECIMEN_FIELDS, Component: SpecimenSurface },
   { id: "editorial", label: "Editorial", size: "big", fields: EDITORIAL_FIELDS, measurable: true, Component: EditorialSurface },
+  // video surfaces — type over footage, for the editor's real cases (title card · chyron · caption)
+  { id: "titlecard", label: "Title card", size: "big", fields: TITLECARD_FIELDS, Component: TitleCardSurface },
+  { id: "lowerthird", label: "Lower third", size: "big", fields: LOWERTHIRD_FIELDS, Component: LowerThirdSurface },
+  { id: "caption", label: "Caption", size: "big", fields: CAPTION_FIELDS, Component: CaptionSurface },
 ];
 
 export const surfaceById = (id: string): SurfaceReg | undefined => SURFACE_COMPONENTS.find((s) => s.id === id);
