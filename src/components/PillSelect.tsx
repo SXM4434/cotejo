@@ -25,8 +25,13 @@ export function PillSelect({ label, value, options, onChange, compact = false }:
     const r = triggerRef.current?.getBoundingClientRect();
     if (!r) return;
     const M = 12;
-    const right = window.innerWidth - r.right;
     const ph = popRef.current?.offsetHeight ?? 220; // estimate before first measure
+    const pw = popRef.current?.offsetWidth ?? 220;
+    // horizontal — anchor the menu's RIGHT to the trigger's right, but NEVER let its LEFT run off the
+    // viewport (the bug: a left-most trigger, e.g. Tune's role picker, pushed the 200px menu off-screen).
+    let right = window.innerWidth - r.right;
+    right = Math.min(right, window.innerWidth - pw - M); // keep the LEFT edge ≥ M
+    right = Math.max(right, M);                          // keep the RIGHT edge ≥ M
     const below = window.innerHeight - r.bottom - M;
     const above = r.top - M;
     const openUp = below < ph + 8 && above > below; // not enough room below AND up has more → drop upward

@@ -35,7 +35,9 @@ export function BottomDock({ children, onHeight, peek }: { children: React.React
     return () => ro.disconnect();
   }, [onHeight, off, narrow]);
 
-  // ── DESKTOP — the floating control pill (unchanged) ──
+  // ── DESKTOP — the floating control bar. WRAPS (squircle, not a stadium pill) when the controls
+  // can't fit one row, so a dense dock (e.g. Tune at a laptop width) never runs off the viewport
+  // edges. At wide widths it's a single clean row. ──
   if (!narrow) {
     return ReactDOM.createPortal(
       <div
@@ -43,8 +45,8 @@ export function BottomDock({ children, onHeight, peek }: { children: React.React
         style={{ position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)", zIndex: 40, maxWidth: "calc(100vw - 20px)" }}
       >
         <LiquidGlass
-          pill radius={26}
-          contentStyle={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", columnGap: 20, rowGap: 14, padding: "14px 20px" }}
+          radius={26}
+          contentStyle={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", columnGap: 20, rowGap: 14, padding: "14px 20px" }}
         >
           {children}
         </LiquidGlass>
