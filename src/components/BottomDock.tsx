@@ -13,7 +13,7 @@ import { useNarrow } from "../lib/useNarrow";
 
 const MONO = "var(--t-mono)";
 
-export function BottomDock({ children, onHeight }: { children: React.ReactNode; onHeight?: (h: number) => void }) {
+export function BottomDock({ children, onHeight, peek }: { children: React.ReactNode; onHeight?: (h: number) => void; peek?: React.ReactNode }) {
   const narrow = useNarrow(820);
   const off = narrow ? 12 : 22; // the dock's offset from the viewport bottom edge (one source)
   const ref = React.useRef<HTMLDivElement>(null);
@@ -77,19 +77,21 @@ export function BottomDock({ children, onHeight }: { children: React.ReactNode; 
         </div>
       )}
 
-      {/* the always-present slim handle (measured for canvas reservation) */}
-      <div ref={ref} data-no-refract style={{ position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)", zIndex: 43 }}>
-        <LiquidGlass pill radius={22} contentStyle={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 14px" }}>
+      {/* the always-present slim handle (measured for canvas reservation). SOLID (readable over type);
+          carries the `peek` control — the one thing you change most, always one tap — plus Controls. */}
+      <div ref={ref} data-no-refract style={{ position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)", zIndex: 43, maxWidth: "calc(100vw - 20px)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: 6, borderRadius: 999, background: "var(--t-bg-lift)", boxShadow: "inset 0 1px 0 0 var(--t-white-edge), inset 0 0 0 1px rgba(var(--t-scrim),0.07), 0 12px 30px -12px rgba(var(--t-scrim),0.42)" }}>
+          {peek}
           <button
             onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? "Hide controls" : "Show controls"}
-            style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", color: "var(--t-ink-2)", padding: "3px 6px" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: open ? "var(--t-surface-2)" : "transparent", border: "none", cursor: "pointer", color: "var(--t-ink-2)", padding: "8px 14px", borderRadius: 999 }}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform var(--t-dur) var(--t-ease)" }}>
               <path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>{open ? "Done" : "Controls"}</span>
           </button>
-        </LiquidGlass>
+        </div>
       </div>
     </>,
     document.body,

@@ -629,12 +629,12 @@ export function CompareContent() {
 
       {/* the INSTRUMENT PANEL — all the controls you adjust while watching the type. MOBILE gets a
           calm labeled panel; DESKTOP keeps the floating pill-row. */}
-      <BottomDock onHeight={setDockH}>
+      <BottomDock
+        onHeight={setDockH}
+        peek={<PillSelect compact value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />}
+      >
         {narrow ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%" }}>
-            <DockRow label="preview in">
-              <PillSelect compact value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />
-            </DockRow>
             {onLetterforms ? (
               <>
                 {roleSel.length > 1 && <DockRow label="role"><PillSelect compact value={focusRoleId} options={roleSel} onChange={setFocusRoleId} /></DockRow>}
