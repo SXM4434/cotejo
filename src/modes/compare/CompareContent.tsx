@@ -145,8 +145,8 @@ function FontRow({ face, baseM, isBase, text, roleName, autoTune, canRemove, onR
   return (
     // the specimen TEXT shares the headline's left edge (one edge per layout-and-alignment); the
     // hover background bleeds 18px left into the gutter rather than indenting the type.
-    <div className="t-row" style={{ padding: "22px 18px", marginLeft: -18 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 9 }}>
+    <div className="t-row" style={{ padding: "28px 18px", marginLeft: -18 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
         {/* the font NAME is a switcher — click it to swap this row's font. Blind A/B hides it (judge
             the type, not the brand): a neutral "Font A" you can hover to reveal. */}
         {blindLabel && !revealed ? (
@@ -282,7 +282,7 @@ function LetterformsGrid({ lmMode, sampleId, blind, otFeatures }: { lmMode: "fon
   return (
     <>
       {/* the canvas is PURE — controls live in the dock. Just the specimen column. */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {tiles.map(({ face, isBase }, i) => (
           <FontRow
             key={face.id} face={face} baseM={baseM} isBase={isBase} text={displayText} roleName={roleName} autoTune={autoTune}
@@ -399,9 +399,9 @@ function RoleHeadline({ surfaceLabel }: { surfaceLabel?: string }) {
   // edited inline on the specimens now (✎ edit text), so no separate input — same model as surfaces.
   const fair = autoTune ? "cap-matched" : "raw · not matched";
   return (
-    <div style={{ marginBottom: 18 }}>
+    <div style={{ marginBottom: 28 }}>
       <span style={{ ...num, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em" }}>compare</span>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", margin: "7px 0 0" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", margin: "9px 0 0" }}>
         <h1 style={{ fontSize: "var(--t-title)", fontWeight: 600, letterSpacing: "-0.02em", color: "var(--t-ink)", margin: 0 }}>Pick the {roleName} font</h1>
         <span style={num}>{`${Math.round(baseSize)}px base · ${fair}`}</span>
       </div>
