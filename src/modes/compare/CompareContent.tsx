@@ -25,6 +25,7 @@ import { leadingForMeasure } from "../../surfaces/resolve";
 import { useMode } from "../../state/ModeContext";
 import { readParam, writeParams } from "../../lib/urlState";
 import { useNarrow } from "../../lib/useNarrow";
+import { DockRow } from "../../components/DockRow";
 import { CompareBar } from "./CompareBar";
 import { topRecs, type Rec } from "../../lib/recommend";
 import { SAMPLES, OT_FEATURES, featureOn, featureOff, type OtFeature } from "../../data/proofStrings";
@@ -487,19 +488,6 @@ function StackTray() {
 // dock group separation = SPACING, not a line (Cotejo locked rule). A transparent spacer widens
 // the gap between control groups so they read as grouped without a hairline divider.
 const dgap = <span aria-hidden="true" style={{ width: 6, flexShrink: 0 }} />;
-
-// MOBILE dock row — a calm labeled line (quiet label left, control right) so the phone Controls sheet
-// reads as a real settings panel, not the desktop pill-row wrapped into a pile. (module-level → stable)
-function DockRow({ label, children }: { label?: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, width: "100%", minHeight: 36 }}>
-      {label != null
-        ? <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--t-ink-3)", flexShrink: 0 }}>{label}</span>
-        : <span />}
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>{children}</div>
-    </div>
-  );
-}
 
 // the surfaces you compare ON (flat picker, in the dock). Letterforms = the bare grid; the
 // rest come from the surface REGISTRY. On a surface you compare whole SYSTEMS: View one

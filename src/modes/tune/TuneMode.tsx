@@ -9,7 +9,9 @@ import { FontPicker } from "../../components/FontPicker";
 import { Btn } from "../../components/Btn";
 import { StretchySlider } from "../../components/StretchySlider";
 import { BottomDock } from "../../components/BottomDock";
+import { DockRow } from "../../components/DockRow";
 import { Segmented } from "../../components/Segmented";
+import { useNarrow } from "../../lib/useNarrow";
 import { measureFont, deriveTune, applyCorrection, featureVector, hasCorrectionModel, logTuneExample, buildExample, exampleCount, exportJsonl, type RawMetrics } from "../../lib/autofinetune";
 import { Check, RingDot } from "../../components/icons";
 import { useSession, dirTagFor, dirAnyTagFor, roleSize, anchorForKind, tuneKey } from "../../state/SessionContext";
@@ -189,6 +191,8 @@ export function TuneMode() {
   const reset = () => { setSizeMul(Number(opticalSize.toFixed(3))); setLhMul(1); setTrack(0); setWght(500); setAnchor(ANCHOR_HOME); setSnapLabel(null); };
   // role-aware: the base/vs pickers surface directions that use a font for the FOCUS role (doc §6)
   const focusRole = focusRole0;
+  // mobile → the dials become a calm labeled panel in the dock sheet (not the desktop pill-row).
+  const narrow = useNarrow(820);
   // APPLY — write the tuned candidate back onto the focus role: adopt it as the role's font AND bake
   // the resolved absolute values (cap-matched size + line-height + tracking + weight) as overrides, so
   // the calibration leaves the bench, ships on every surface, and flows into the structured export.
@@ -311,7 +315,26 @@ export function TuneMode() {
         )}
       </div>
 
-      <BottomDock>
+      <BottomDock peek={narrow ? <FontPicker label="vs" value={candId} onPick={setCandId} tagFor={fontTag} tagForAny={fontAnyTag} roleLabel={focusRole.name} /> : undefined}>
+        {narrow ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%" }}>
+            {roleSelOpts.length > 1 && <DockRow label="role"><PillSelect compact value={focusRoleId} options={roleSelOpts} onChange={setFocusRoleId} /></DockRow>}
+            <DockRow label="base"><FontPicker value={baseId} onPick={setBaseId} tagFor={fontTag} tagForAny={fontAnyTag} roleLabel={focusRole.name} /></DockRow>
+            <DockRow label="overlay"><Segmented options={[{ id: "ghost", label: "ghost" }, { id: "difference", label: "difference" }]} value={overlay} onChange={setOverlay} ariaLabel="How to overlay the two fonts" compact /></DockRow>
+            <DockRow label="size"><StretchySlider label="" value={sizeMul} min={0.6} max={1.4} step={0.001} onChange={setSizeMul} format={(v) => `${Math.round(roleSize(focusRole0, scale) * v)}px`} width={150} /></DockRow>
+            <DockRow label="line height"><StretchySlider label="" value={lhMul} min={0.8} max={1.4} step={0.01} onChange={setLhMul} format={(v) => `×${v.toFixed(2)}`} width={150} /></DockRow>
+            <DockRow label="spacing"><StretchySlider label="" value={track} min={-60} max={60} step={1} onChange={setTrack} format={(v) => `${(v / 1000).toFixed(3)}em`} width={150} /></DockRow>
+            <DockRow label="weight"><StretchySlider label="" value={wght} min={100} max={900} step={10} onChange={setWght} format={(v) => `${v}`} width={150} /></DockRow>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, width: "100%", marginTop: 2 }}>
+              <Btn variant="secondary" size="sm" mono onClick={autoTune} title="Auto-tune — measures both faces and snaps every dial to the cap-matched optical default"><RingDot size={13} /> auto-tune</Btn>
+              <Btn variant="ghost" size="sm" mono onClick={reset}>reset</Btn>
+              <Btn variant={applied ? "accent" : "primary"} size="sm" mono onClick={applyToRole} title={`Adopt ${cand.label} for ${focusRole.name} at this calibration`}>
+                {applied ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Check size={13} /> applied</span> : `apply to ${focusRole.name.toLowerCase()}`}
+              </Btn>
+            </div>
+          </div>
+        ) : (
+        <>
         {roleSelOpts.length > 1 && (
           <PillSelect value={focusRoleId} options={roleSelOpts} onChange={setFocusRoleId} />
         )}
@@ -341,6 +364,8 @@ export function TuneMode() {
             {applied ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Check size={13} /> applied</span> : `apply to ${focusRole.name.toLowerCase()}`}
           </Btn>
         </span>
+        </>
+        )}
       </BottomDock>
     </div>
   );
