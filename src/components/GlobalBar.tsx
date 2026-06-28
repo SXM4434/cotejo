@@ -18,6 +18,9 @@ import { TourButton } from "./Walkthrough";
 export function GlobalBar({ right }: { right?: React.ReactNode }) {
   const { mode, setMode } = useMode();
   const narrow = useNarrow(720);
+  // below the dock's breakpoint, the mode's own controls (the `right` slot — base + cap-match) leave
+  // the top entirely and live in the dock's Controls sheet, so the top bar never crams on a phone.
+  const compact = useNarrow(820);
   return (
     // sticky lives on a PLAIN wrapper — @lisse's clip-path on the glass element
     // breaks position:sticky, so the glass sits inside a sticky div.
@@ -87,19 +90,19 @@ export function GlobalBar({ right }: { right?: React.ReactNode }) {
         {/* right side — desktop: the mode's right slot (if any) + the always-present Sessions switcher */}
         {!narrow && (
           <div style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
-            {right}
+            {!compact && right}
             <TourButton />
             <SessionSwitcher />
           </div>
         )}
       </LiquidGlass>
 
-      {/* narrow: the mode's right slot + Sessions drop to their own row below the pill */}
+      {/* narrow: only the WORKSPACE + tour live below the tabs — the mode's own controls (the `right`
+          slot, e.g. base + cap-match) move into the dock's Controls sheet so the top stays calm. */}
       {narrow && (
         <div style={{ marginTop: 10, paddingInline: "clamp(6px,1.6vw,22px)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-          {right}
-          <TourButton />
           <SessionSwitcher />
+          <TourButton />
         </div>
       )}
     </div>

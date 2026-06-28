@@ -24,6 +24,8 @@ import { SURFACE_COMPONENTS, surfaceById } from "../../surfaces/registry";
 import { leadingForMeasure } from "../../surfaces/resolve";
 import { useMode } from "../../state/ModeContext";
 import { readParam, writeParams } from "../../lib/urlState";
+import { useNarrow } from "../../lib/useNarrow";
+import { CompareBar } from "./CompareBar";
 import { topRecs, type Rec } from "../../lib/recommend";
 import { SAMPLES, OT_FEATURES, featureOn, featureOff, type OtFeature } from "../../data/proofStrings";
 import { featureSupported } from "../../lib/otSupport";
@@ -486,6 +488,19 @@ function StackTray() {
 // the gap between control groups so they read as grouped without a hairline divider.
 const dgap = <span aria-hidden="true" style={{ width: 6, flexShrink: 0 }} />;
 
+// MOBILE dock row — a calm labeled line (quiet label left, control right) so the phone Controls sheet
+// reads as a real settings panel, not the desktop pill-row wrapped into a pile. (module-level → stable)
+function DockRow({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, width: "100%", minHeight: 36 }}>
+      {label != null
+        ? <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--t-ink-3)", flexShrink: 0 }}>{label}</span>
+        : <span />}
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>{children}</div>
+    </div>
+  );
+}
+
 // the surfaces you compare ON (flat picker, in the dock). Letterforms = the bare grid; the
 // rest come from the surface REGISTRY. On a surface you compare whole SYSTEMS: View one
 // (your stack — the editable one), tile several side by side, or onion two.
@@ -580,6 +595,9 @@ export function CompareContent() {
   const vsCandidates = all.filter((s) => s.key !== effShow);
   const effVs = vsCandidates.some((s) => s.key === vsKey) ? vsKey : (vsCandidates[0]?.key ?? "");
   const roleSel = roleOpts.map((r) => ({ value: r.id, label: r.name }));
+  // mobile → the dock controls become a calm labeled panel (not the desktop pill-row), and the base +
+  // cap-match globals move in here (they leave the top bar). Same breakpoint the dock collapses at.
+  const narrow = useNarrow(820);
 
   // SYNC the view → URL (defaults omitted so a plain session stays a clean URL). This is what makes
   // the Share link reproduce the exact comparison: shareActive() copies location.search verbatim.
@@ -609,8 +627,57 @@ export function CompareContent() {
       </div>
       <StackTray />
 
-      {/* the INSTRUMENT PANEL — all the controls you adjust while watching the type */}
+      {/* the INSTRUMENT PANEL — all the controls you adjust while watching the type. MOBILE gets a
+          calm labeled panel; DESKTOP keeps the floating pill-row. */}
       <BottomDock onHeight={setDockH}>
+        {narrow ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%" }}>
+            <DockRow label="preview in">
+              <PillSelect compact value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />
+            </DockRow>
+            {onLetterforms ? (
+              <>
+                {roleSel.length > 1 && <DockRow label="role"><PillSelect compact value={focusRoleId} options={roleSel} onChange={setFocusRoleId} /></DockRow>}
+                <DockRow label="sample"><PillSelect compact value={sampleId} options={SAMPLES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSampleId} /></DockRow>
+                {sampleId === "word" && <DockRow label="pick / edit"><Segmented options={PICK_EDIT} value={lmMode} onChange={setLmMode} ariaLabel="Pick a font or edit the sample word" /></DockRow>}
+                {isOt && <DockRow label="features"><OtPicker selected={otf} onToggle={toggleOt} /></DockRow>}
+              </>
+            ) : (
+              <>
+                <DockRow label="showing"><PillSelect compact value={effShow} options={sourceOpts} onChange={setShowKey} /></DockRow>
+                <DockRow label="compare"><Segmented options={SURF_MODES} value={mode} onChange={setMode} ariaLabel="How to compare on this surface" /></DockRow>
+                {mode === "onion" && vsCandidates.length > 0 && (
+                  <>
+                    <DockRow label="against"><PillSelect compact value={effVs} options={vsCandidates.map((s) => ({ value: s.key, label: s.label }))} onChange={setVsKey} /></DockRow>
+                    <DockRow label="fade"><StretchySlider value={fade} min={0} max={100} onChange={setFade} label="" format={(v) => `${v}%`} width={150} /></DockRow>
+                  </>
+                )}
+                {mode === "view" && (
+                  <DockRow label="pick / edit">
+                    <Segmented options={PICK_EDIT} value={surfEdit} onChange={setSurfEdit} ariaLabel="Pick a font or edit the text" />
+                    {surfEdited && <Btn variant="ghost" size="sm" mono onClick={() => curSurf && resetSurfaceContent(curSurf.id)}>reset</Btn>}
+                  </DockRow>
+                )}
+                {curSurf?.measurable && <DockRow label="measure"><MeasureControl value={measure} onChange={setMeasure} /></DockRow>}
+                {mode === "view" && notSetUp.length > 0 && (
+                  <DockRow label="roles">
+                    <button onClick={() => goToMode("setup")} style={{ display: "inline-flex", alignItems: "center", gap: 5, border: "none", background: "transparent", cursor: "pointer", fontFamily: MONO, fontSize: 11, color: "var(--t-match)", whiteSpace: "nowrap" }}>
+                      set up {fmtList(notSetUp, 6)} <ArrowRight size={11} />
+                    </button>
+                  </DockRow>
+                )}
+              </>
+            )}
+            {/* the "what am I comparing" globals (self-labeling) — moved off the top bar onto the phone */}
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, width: "100%", marginTop: 2 }}>
+              <CompareBar />
+              {onLetterforms && !isOt && <IconToggle on={blind} onClick={() => setBlind((v) => !v)} label="blind A/B" ariaLabel="Blind A/B — hide font names" title="Hide the font names so you judge the type, not the brand"><EyeOff size={15} /></IconToggle>}
+              <IconToggle on={ground === "dark"} onClick={() => setGround((g) => (g === "dark" ? "paper" : "dark"))} label={ground === "dark" ? "dark" : "ground"} ariaLabel={ground === "dark" ? "Dark ground" : "Paper ground"} title="Preview on a dark ground"><Contrast size={15} /></IconToggle>
+              <ViewportPicker />
+            </div>
+          </div>
+        ) : (
+        <>
         <SurfaceHint show={surfaceId === "letterforms"}>
           <PillSelect label="preview in" value={surfaceId} options={SURFACES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSurfaceId} />
         </SurfaceHint>
@@ -664,6 +731,8 @@ export function CompareContent() {
         {/* dark ground — UNIVERSAL (Letterforms + every surface), so it lives in the shared dock tail */}
         <IconToggle on={ground === "dark"} onClick={() => setGround((g) => (g === "dark" ? "paper" : "dark"))} label={ground === "dark" ? "dark" : "ground"} ariaLabel={ground === "dark" ? "Dark ground" : "Paper ground"} title="Preview on a dark ground"><Contrast size={15} /></IconToggle>
         <ViewportPicker />
+        </>
+        )}
       </BottomDock>
     </div>
   );
