@@ -351,7 +351,7 @@ function RoleRow({ role, scale, vw, text, setText }: { role: Role; scale: Scale;
     // specimen so a big word never collides with them.
     <div
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{ position: "relative", display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) auto", alignItems: "end", columnGap: 32, rowGap: 12, marginBottom: "var(--t-gap-md)" }}
+      style={{ position: "relative", display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) auto", alignItems: "end", columnGap: 32, rowGap: 12, marginBottom: "calc(var(--t-gap-md) + 12px)" }}
     >
       {/* the role label hugs the word it titles (tight) — clips so a big specimen never
           runs under the controls */}
