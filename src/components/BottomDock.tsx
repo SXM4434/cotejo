@@ -56,18 +56,24 @@ export function BottomDock({ children, onHeight }: { children: React.ReactNode; 
   // ── MOBILE — slim handle + pull-up controls sheet ──
   return ReactDOM.createPortal(
     <>
-      {/* tap-away scrim (light — the type stays visible behind the sheet) */}
-      {open && <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 41, background: "rgba(var(--t-scrim),0.16)" }} />}
+      {/* tap-away scrim — dims the canvas so the solid sheet reads as the focused layer */}
+      {open && <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 41, background: "rgba(var(--t-scrim),0.28)" }} />}
 
-      {/* the controls sheet — only when open; sits above the handle, scrolls if tall */}
+      {/* the controls sheet — only when open; sits above the handle, scrolls if tall. SOLID (not the
+          refracting glass): a controls panel has to be opaque, or the comparison type bleeds through
+          it on real Safari (where backdrop-filter is actually transparent). */}
       {open && (
-        <div data-no-refract style={{ position: "fixed", left: 10, right: 10, bottom: off + 50, zIndex: 42 }}>
-          <LiquidGlass
-            radius={24}
-            contentStyle={{ display: "flex", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap", columnGap: 12, rowGap: 14, padding: 16, maxHeight: "56vh", overflowY: "auto" }}
-          >
-            {children}
-          </LiquidGlass>
+        <div
+          data-no-refract
+          style={{
+            position: "fixed", left: 10, right: 10, bottom: off + 52, zIndex: 42,
+            background: "var(--t-bg-lift)", borderRadius: 24, padding: 16,
+            boxShadow: "inset 0 1px 0 0 var(--t-white-edge), inset 0 0 0 1px rgba(var(--t-scrim),0.07), 0 24px 60px -22px rgba(var(--t-scrim),0.5)",
+            maxHeight: "62vh", overflowY: "auto",
+            display: "flex", alignItems: "stretch", justifyContent: "flex-start", flexWrap: "wrap", columnGap: 12, rowGap: 14,
+          }}
+        >
+          {children}
         </div>
       )}
 
