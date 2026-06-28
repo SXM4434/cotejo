@@ -1,24 +1,29 @@
 // BottomDock — the floating dial dock (Locale-style), bottom-center. Holds the
 // "how it renders" controls you tune while watching the type. This is THE home
 // for the real Aave liquid glass (it floats over + refracts the specimens).
-// Drop shadow rides a wrapper filter so it follows the squircle silhouette.
+//
+// DESKTOP: one floating pill of controls. MOBILE: the full row can't fit, and wrapping it stacks
+// into a half-page wall of pills that eats the type. So on narrow we keep only a slim "Controls"
+// HANDLE at the bottom (measured → the canvas reserves just that, the type keeps the screen) and
+// raise the full controls in a sheet OVER the canvas only when tapped. Native, calm, type-first.
 import React from "react";
 import ReactDOM from "react-dom";
 import { LiquidGlass } from "./LiquidGlass";
 import { useNarrow } from "../lib/useNarrow";
 
-// PORTALED to <body> — must live OUTSIDE #cotejo-stage. The dock's own glass clones
-// the stage; if the dock (and its clone host) sat inside the observed stage, every
-// reclone would mutate the stage → MutationObserver → reclone → infinite loop.
-// Narrow: the row of dials can't fit, so the dock WRAPS to multiple rows and drops
-// the full pill (a tall stadium looks wrong) for a generous squircle.
+const MONO = "var(--t-mono)";
+
 export function BottomDock({ children, onHeight }: { children: React.ReactNode; onHeight?: (h: number) => void }) {
   const narrow = useNarrow(820);
   const off = narrow ? 12 : 22; // the dock's offset from the viewport bottom edge (one source)
   const ref = React.useRef<HTMLDivElement>(null);
-  // report the TOTAL bottom band the dock occupies (its height + its offset from the edge),
-  // measured live — so the canvas can reserve exactly that much and never sit under the dock
-  // (the dock wraps to multiple rows when narrow, so a static guess can't hold).
+  const [open, setOpen] = React.useState(false);
+  // a surface/mode change shouldn't leave the sheet hanging open over the new canvas.
+  React.useEffect(() => { if (!narrow) setOpen(false); }, [narrow]);
+
+  // report the bottom band the ALWAYS-PRESENT bar occupies (its height + offset) — so the canvas
+  // reserves exactly that and never sits under it. On mobile that's the slim handle, not the (much
+  // taller) open sheet: the sheet OVERLAYS the canvas, it doesn't push it, so layout never jumps.
   React.useLayoutEffect(() => {
     if (!onHeight) return;
     const el = ref.current;
@@ -28,32 +33,59 @@ export function BottomDock({ children, onHeight }: { children: React.ReactNode; 
     const ro = new ResizeObserver(report);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [onHeight, off]);
-  return ReactDOM.createPortal(
-    <div
-      ref={ref}
-      data-no-refract
-      style={{
-        position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)",
-        zIndex: 40, maxWidth: "calc(100vw - 20px)",
-        // no heavy drop-shadow — matches the top bar's clean glass (both rely on the
-        // LiquidGlass rim/specular only, so the two bars read as ONE material).
-      }}
-    >
-      <LiquidGlass
-        pill={!narrow}
-        radius={narrow ? 28 : 26}
-        contentStyle={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexWrap: narrow ? "wrap" : "nowrap",
-          columnGap: narrow ? 12 : 20,
-          rowGap: 14,
-          padding: narrow ? "14px 16px" : "14px 20px",
-        }}
+  }, [onHeight, off, narrow]);
+
+  // ── DESKTOP — the floating control pill (unchanged) ──
+  if (!narrow) {
+    return ReactDOM.createPortal(
+      <div
+        ref={ref} data-no-refract
+        style={{ position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)", zIndex: 40, maxWidth: "calc(100vw - 20px)" }}
       >
-        {children}
-      </LiquidGlass>
-    </div>,
+        <LiquidGlass
+          pill radius={26}
+          contentStyle={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", columnGap: 20, rowGap: 14, padding: "14px 20px" }}
+        >
+          {children}
+        </LiquidGlass>
+      </div>,
+      document.body,
+    );
+  }
+
+  // ── MOBILE — slim handle + pull-up controls sheet ──
+  return ReactDOM.createPortal(
+    <>
+      {/* tap-away scrim (light — the type stays visible behind the sheet) */}
+      {open && <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 41, background: "rgba(var(--t-scrim),0.16)" }} />}
+
+      {/* the controls sheet — only when open; sits above the handle, scrolls if tall */}
+      {open && (
+        <div data-no-refract style={{ position: "fixed", left: 10, right: 10, bottom: off + 50, zIndex: 42 }}>
+          <LiquidGlass
+            radius={24}
+            contentStyle={{ display: "flex", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap", columnGap: 12, rowGap: 14, padding: 16, maxHeight: "56vh", overflowY: "auto" }}
+          >
+            {children}
+          </LiquidGlass>
+        </div>
+      )}
+
+      {/* the always-present slim handle (measured for canvas reservation) */}
+      <div ref={ref} data-no-refract style={{ position: "fixed", left: "50%", bottom: off, transform: "translateX(-50%)", zIndex: 43 }}>
+        <LiquidGlass pill radius={22} contentStyle={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 14px" }}>
+          <button
+            onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? "Hide controls" : "Show controls"}
+            style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", color: "var(--t-ink-2)", padding: "3px 6px" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform var(--t-dur) var(--t-ease)" }}>
+              <path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>{open ? "Done" : "Controls"}</span>
+          </button>
+        </LiquidGlass>
+      </div>
+    </>,
     document.body,
   );
 }
